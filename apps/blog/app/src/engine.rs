@@ -651,7 +651,7 @@ pub enum Station {
 
 /// One server's live counts, for the fleet view's box — busy cores, the three queue
 /// depths, in-flight work, and the running outcome tallies.
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, PartialEq)]
 pub struct ServerCounts {
     pub busy: usize,
     pub tcp: usize,
@@ -664,6 +664,12 @@ pub struct ServerCounts {
     /// Turned away at the door for being over a tenant's share. Not a failure of the server and
     /// not something the client retries into — its own tally.
     pub rate_limited: usize,
+}
+
+impl ServerCounts {
+    pub fn untouched(&self) -> bool {
+        *self == Self::default()
+    }
 }
 
 /// A request entering a station, stamped with the instant it did. The visualiser walks

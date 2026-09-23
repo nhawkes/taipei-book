@@ -331,7 +331,6 @@ pub(crate) async fn run(
             div css=[card::CTRLS] {
                 ToggleGroup items=(policy_items) knob=(policy_knob) picked=(picked_policy)
             }
-            div css=[fstyles::LABEL] { "experience · shared ms scale · last 30 s" }
             div css=[card::CTRLS] {
                 ToggleGroup items=(metric_items) knob=(metric_knob) picked=(picked_metric)
             }
@@ -453,7 +452,7 @@ pub(crate) async fn run(
                 engine.tick(dt * speed_now);
                 let fleet = engine.fleet();
                 for (signal, server) in counts.iter().zip(&fleet) {
-                    signal.set(&turn, server.counts);
+                    signal.set(&turn, *server);
                 }
                 for (signal, lb) in lb_counts.iter().zip(engine.balancers()) {
                     signal.set(&turn, (lb.clients, lb.inflight));

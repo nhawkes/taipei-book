@@ -23,12 +23,16 @@ pub async fn Invite(
     #[opt]
     hug: bool,
 ) -> idyll::Result {
+    let hug = hug.unwrap_or(false);
     let asking = when.clone();
-    let hugging = ctx.constant(hug.unwrap_or(false));
+    let invite_loose = when.clone();
+    let loose = ctx.computed(move |cx| invite_loose.get(cx) && !hug).read();
+    let tight = ctx.computed(move |cx| when.get(cx) && hug).read();
+    let hugging = ctx.constant(hug);
     let tag_hugging = hugging.clone();
     ctx
         .render(live_view! {
-            div css=[styles::WRAP, $when => styles::INVITE, $hugging => styles::HUG] {
+            div css=[styles::WRAP, $loose => styles::INVITE, $tight => styles::INVITE_HUG, $hugging => styles::HUG] {
                 @if ($asking) {
                     span css=[styles::ASK, $tag_hugging => styles::ASK_BESIDE] { (hint) }
                 }
@@ -52,6 +56,12 @@ pub mod styles {
         pub Nudge {
             from { box_shadow: "0 0 0 0 #77935a4d" },
             "70%" { box_shadow: "0 0 0 12px #77935a00" },
+            to { box_shadow: "0 0 0 0 #77935a00" }
+        }
+
+        pub NudgeTight {
+            from { box_shadow: "0 0 0 0 #77935a59" },
+            "70%" { box_shadow: "0 0 0 5px #77935a00" },
             to { box_shadow: "0 0 0 0 #77935a00" }
         }
 
@@ -119,6 +129,11 @@ pub mod styles {
         pointer_events: "none",
         box_shadow: "0 2px 6px #77935a33",
         animation: Bob "1.6s ease-in-out infinite",
+    }};
+
+    pub const INVITE_HUG: Style = css! {{
+        border_radius: Radius::pill,
+        animation: NudgeTight "2.2s ease-out infinite",
     }};
 
     pub const HUG: Style = css! {{ flex_grow: 0 }};

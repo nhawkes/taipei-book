@@ -47,15 +47,6 @@ pub fn sim_seed(key: &SimKey) -> u64 {
     0x5eed ^ key.ordinal as u64
 }
 
-/// One server as the fleet view draws it: how many clients (and so requests) routing
-/// sent its way, and its live counts. `load` is the ball-count — the balls-in-bins
-/// imbalance the chapter is about — so a `0` here is a server left idle.
-#[derive(Clone, Copy)]
-pub struct FleetServer {
-    pub load: usize,
-    pub counts: ServerCounts,
-}
-
 // ----- the latency breakdown --------------------------------------------------
 
 /// One row of the timing table: where a request's wall-clock time went.
@@ -1384,16 +1375,6 @@ impl MultiEngine {
         &self.assignment
     }
 
-    /// How many requests routing sent each server — the balls-in-bins load (all zero
-    /// until a batch has been fired).
-    pub fn per_server_load(&self) -> Vec<usize> {
-        let mut load = vec![0usize; self.batch.servers];
-        for &s in &self.assignment {
-            load[s] += self.batch.reqs_per_client;
-        }
-        load
-    }
-
     /// Each balancer as the card draws it. A client counts toward the balancer it lives on
     /// once it has lived at all — a slot never yet born is nobody's — and only while it is
     /// inside the crowd's target, because a slot the slider shrank away is on its way out
@@ -1418,16 +1399,11 @@ impl MultiEngine {
             .collect()
     }
 
-    /// Each server as the fleet view draws it: its routed load and its live counts.
-    pub fn fleet(&self) -> Vec<FleetServer> {
-        let load = self.per_server_load();
+    /// Each server's live counts.
+    pub fn fleet(&self) -> Vec<ServerCounts> {
         self.states
             .iter()
-            .enumerate()
-            .map(|(s, state)| FleetServer {
-                load: load[s],
-                counts: state.lock().unwrap().counts(),
-            })
+            .map(|state| state.lock().unwrap().counts())
             .collect()
     }
 
@@ -2296,19 +2272,19 @@ mod tests {
         let mut e = edge_for(0x5eed, Policy::PowerOfTwo, 1000.0, 3.0);
         e.set_servers(4);
         run_for(&mut e, 2.0);
-        let benched: Vec<usize> = e.fleet()[4..].iter().map(|f| f.counts.success).collect();
+        let benched: Vec<usize> = e.fleet()[4..].iter().map(|f| f.success).collect();
         let answered = e.answered().trips;
         run_for(&mut e, 2.0);
         assert_eq!(
             benched,
             e.fleet()[4..]
                 .iter()
-                .map(|f| f.counts.success)
+                .map(|f| f.success)
                 .collect::<Vec<_>>(),
             "a benched server's tally has stopped",
         );
         assert!(
-            e.fleet()[4..].iter().all(|f| f.counts.inflight == 0),
+            e.fleet()[4..].iter().all(|f| f.inflight == 0),
             "and it has drained"
         );
         assert!(e.answered().trips > answered, "while the fleet answers on");
@@ -2892,23 +2868,24 @@ mod tests {
         }
         let fleet = e.fleet();
         assert_eq!(fleet.len(), SERVERS);
-        assert_eq!(
-            fleet.iter().map(|f| f.load).sum::<usize>(),
-            80 * REQS_PER_CLIENT
-        );
+        let mut load = [0usize; SERVERS];
+        for &s in e.assignment() {
+            load[s] += REQS_PER_CLIENT;
+        }
+        assert_eq!(load.iter().sum::<usize>(), 80 * REQS_PER_CLIENT);
         let (lo, hi) = (
-            fleet.iter().map(|f| f.load).min().unwrap(),
-            fleet.iter().map(|f| f.load).max().unwrap(),
+            load.iter().copied().min().unwrap(),
+            load.iter().copied().max().unwrap(),
         );
         assert!(hi >= lo * 2, "routing is lopsided: {lo}..{hi}");
         assert!(
-            fleet.iter().any(|f| f.counts.busy > 0),
+            fleet.iter().any(|f| f.busy > 0),
             "a busy server has cores working"
         );
         assert!(
             fleet
                 .iter()
-                .any(|f| f.counts.req > 0 || f.counts.retried > 0),
+                .any(|f| f.req > 0 || f.retried > 0),
             "an overloaded server has queued or shed work"
         );
     }

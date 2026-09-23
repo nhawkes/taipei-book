@@ -153,7 +153,7 @@ impl Arm {
         let busy: usize = fleet
             .iter()
             .take(self.rotation)
-            .map(|s| s.counts.busy)
+            .map(|s| s.busy)
             .sum();
         let believed = self.engine.believed();
         let want = self.scaler.frame(
@@ -484,7 +484,7 @@ impl Readouts {
     /// is owed an answer, and what the scaler is looking at. Every frame.
     fn fleet(&mut self, arm: &Arm, turn: &idyll::Reducer<AutoscaleMsg>) {
         for (signal, server) in self.counts.iter().zip(arm.engine.fleet()) {
-            signal.set(turn, server.counts);
+            signal.set(turn, server);
         }
         self.rotation.set(turn, arm.rotation);
         let answered = arm.engine.answered();

@@ -128,19 +128,16 @@ pub(crate) async fn run(
     let mut tier = LaneTier::new(CLIENTS, NET_MS);
 
     // Each box reads its own machine as the batch settles — the same live shape the cluster
-    // grid passes to this atom. A server nobody stuck to stays idle for the whole batch, which
-    // routing already knows, so that much is fixed from the still.
+    // grid passes to this atom.
     let counts: Vec<_> = (0..SERVERS)
         .map(|_| ctx.mutable_signal(ServerCounts::default()))
         .collect();
     let boxes: Vec<(usize, String, Signal<ServerCounts>, Signal<bool>)> = (0..SERVERS)
         .map(|i| {
-            (
-                i,
-                server_name(i),
-                counts[i].read(),
-                ctx.constant(per_server_clients[i] == 0),
-            )
+            let live = counts[i].read();
+            let seen = live.clone();
+            let idle = ctx.computed(move |cx| seen.get(cx).untouched()).read();
+            (i, server_name(i), live, idle)
         })
         .collect();
 
@@ -202,14 +199,14 @@ pub(crate) async fn run(
                 let fleet = engine.fleet();
                 let shed: Vec<bool> = assignment
                     .iter()
-                    .map(|&s| fleet[s].counts.retried > 0)
+                    .map(|&s| fleet[s].retried > 0)
                     .collect();
                 if shed != client_shed {
                     client_shed = shed;
                     relaid = true;
                 }
                 for (signal, server) in counts.iter().zip(&fleet) {
-                    signal.set(&turn, server.counts);
+                    signal.set(&turn, *server);
                 }
                 let outstanding = engine.outstanding();
                 for (c, (signal, was)) in busy.iter().zip(waiting.iter_mut()).enumerate() {

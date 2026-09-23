@@ -392,7 +392,6 @@ pub(crate) async fn run(
             }
             div css=[styles::LABEL] { "busiest machine over emptiest · " span css=[FIG3] { $spread_most_read } " over " span css=[FIG3] { $spread_least_read } }
             @if (has_pill) {
-                div css=[styles::LABEL] { "experience · shared ms scale · recent requests" }
                 div css=[styles::DIAL] style=($cut_ink) {
                     Slider name=(Name::new("", 0)) scale=(CUT_SCALE) at=(cut_at)
                         fmt=(cut_label) moved=>(|n| FlowMsg::Cut(0, n))
@@ -589,9 +588,9 @@ pub(crate) async fn run(
 
                 let fleet = engine.fleet();
                 for (signal, server) in counts.iter().zip(&fleet) {
-                    signal.set(&turn, server.counts);
+                    signal.set(&turn, *server);
                 }
-                let loads: Vec<usize> = fleet.iter().map(|s| s.counts.inflight).collect();
+                let loads: Vec<usize> = fleet.iter().map(|s| s.inflight).collect();
                 let (most, least) = spread_of(&loads);
                 spread_most.set(&turn, most);
                 spread_least.set(&turn, least);

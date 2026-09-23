@@ -297,10 +297,13 @@ pub(crate) async fn run(
     let fleet: Vec<idyll::MutableSignal<ServerCounts>> = (0..SERVERS)
         .map(|_| ctx.mutable_signal(ServerCounts::default()))
         .collect();
-    let idle: Vec<idyll::MutableSignal<bool>> =
-        (0..SERVERS).map(|_| ctx.mutable_signal(true)).collect();
     let boxes: Vec<(usize, String, Signal<ServerCounts>, Signal<bool>)> = (0..SERVERS)
-        .map(|i| (i, server_name(i), fleet[i].read(), idle[i].read()))
+        .map(|i| {
+            let live = fleet[i].read();
+            let seen = live.clone();
+            let idle = ctx.computed(move |cx| seen.get(cx).untouched()).read();
+            (i, server_name(i), live, idle)
+        })
         .collect();
     let wires = {
         let (stage, clients, servers, routing) = (
@@ -412,7 +415,6 @@ pub(crate) async fn run(
     let mut readouts = Readouts {
         cuts,
         fleet,
-        idle,
         axis,
         crowd,
         painted,
@@ -537,7 +539,6 @@ pub(crate) async fn run(
 struct Readouts {
     cuts: Vec<Cut>,
     fleet: Vec<idyll::MutableSignal<ServerCounts>>,
-    idle: Vec<idyll::MutableSignal<bool>>,
     axis: idyll::MutableSignal<f64>,
     /// One ring per client at the largest scale; a smaller scale draws a prefix of them.
     crowd: Vec<idyll::MutableSignal<Client>>,
@@ -582,12 +583,8 @@ impl Readouts {
             .as_ref()
             .map(MultiEngine::fleet)
             .unwrap_or_default();
-        for (i, (counts, quiet)) in self.fleet.iter().zip(&self.idle).enumerate() {
-            let server = seen.get(i).copied();
-            counts.set(turn, server.map(|s| s.counts).unwrap_or_default());
-            // Idle is the routed load, which is what the fan-out means by it too — and a scale
-            // nobody has sent is ten idle machines rather than the last scale's ten.
-            quiet.set(turn, server.is_none_or(|s| s.load == 0));
+        for (i, counts) in self.fleet.iter().enumerate() {
+            counts.set(turn, seen.get(i).copied().unwrap_or_default());
         }
     }
 }
