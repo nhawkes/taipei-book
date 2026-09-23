@@ -154,7 +154,7 @@ fn index(chapters: Vec<ChapterFrag>) -> View {
 
     view! {
         @content(heading(HeadingLevel::Title, "taipei"))
-        @content(standfirst("A queue engine, and the framework built to write about it."))
+        @content(standfirst("A library that integrates with tower to enable writing servers that behave well under stress without tuning."))
         ul css=[styles::TOC_LIST] {
             @for chapter in (book) {
                 li css=[styles::TOC_ITEM] {
