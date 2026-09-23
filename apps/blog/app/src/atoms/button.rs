@@ -33,11 +33,11 @@ pub async fn Button(
         ButtonKind::Solid => styles::SOLID,
         ButtonKind::Ghost => styles::GHOST,
     };
-    Ok(ctx
+    ctx
         .render(live_view! {
             button css=[styles::BASE, FOCUS, variant] onclick=(pressed) { $label }
         })
-        .await?)
+        .await
 }
 
 #[styles]

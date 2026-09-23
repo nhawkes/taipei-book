@@ -370,9 +370,9 @@ pub(crate) async fn run(
                 button css=[bstyles::BASE, bstyles::CTA]
                     onclick=>(|_| Some(FlowMsg::Toggle)) { $run_label }
                 Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(50, 900, 10))
-                    at=(qps_at) fmt=(fmt_qps) moved=>(|n| FlowMsg::Qps(n))
+                    at=(qps_at) fmt=(fmt_qps) moved=>(FlowMsg::Qps)
                 Slider name=(Name::new("speed", 38)) scale=(Scale::new(0, 100, 1))
-                    at=(speed_at) fmt=(fmt_speed) moved=>(|n| FlowMsg::Speed(n))
+                    at=(speed_at) fmt=(fmt_speed) moved=>(FlowMsg::Speed)
             }
             @if (has_pill) {
                 div css=[card::CTRLS] {
@@ -431,7 +431,7 @@ pub(crate) async fn run(
                     div {}
                     div {
                         Slider name=(Name::new("pool", 34)) scale=(Scale::new(2, 10, 1))
-                            at=(pool_at) fmt=(fmt_pool) moved=>(|n| FlowMsg::Pool(n))
+                            at=(pool_at) fmt=(fmt_pool) moved=>(FlowMsg::Pool)
                     }
                 }
             }

@@ -14,14 +14,14 @@ use idyll_styles::styles;
 
 #[idyll::component]
 pub async fn Framed(ctx: Ctx<Setup, Never>, corner: Slot, children: Slot) -> idyll::Result {
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::FRAME] {
                 div css=[styles::CORNER] { (corner) }
                 (children)
             }
         })
-        .await?)
+        .await
 }
 
 #[styles]

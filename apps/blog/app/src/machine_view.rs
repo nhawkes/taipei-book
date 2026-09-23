@@ -892,7 +892,7 @@ impl Frame {
 
 pub(crate) fn build_frame(obs: &Obs, vs: &ViewState, ps: &mut PaintState) -> Frame {
     ps.frame_n = ps.frame_n.wrapping_add(1);
-    let parity = ps.frame_n % 2 == 0;
+    let parity = ps.frame_n.is_multiple_of(2);
     // ── the dot swarm: one dot per live request, coloured by its station (the engine's
     // truth), positioned where the motion layer has walked it (allowed to lag) ──
     let mut dots: Vec<DotVm> = Vec::new();
@@ -1410,7 +1410,7 @@ pub async fn MachineView(
     });
     let waiting_not_queued = memo(&ctx, &has_queue, |&q| !q);
 
-    Ok(ctx.render(live_view! {
+    ctx.render(live_view! {
         // ── the 960×520 stage. Armed until the first click releases the still ──
         div css=[cstyles::STAGE, $flat => cstyles::STAGE_NESTED, $armed => cstyles::ARMED] style=($stage_sty)
             onclick=(on_click) {
@@ -1581,7 +1581,7 @@ pub async fn MachineView(
             }
           }
         }
-    }).await?)
+    }).await
 }
 
 #[cfg(test)]

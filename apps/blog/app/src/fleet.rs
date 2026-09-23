@@ -72,7 +72,7 @@ pub(crate) async fn run(
     let mut cluster = Cluster::new();
     // Each server's arrival rate, so drilling in shows the load it is actually running and a
     // reader who moves one knob leaves the others where they were.
-    let mut qps = vec![HEALTHY_QPS; SERVERS];
+    let mut qps = [HEALTHY_QPS; SERVERS];
 
     // One live counts signal per server for the fleet grid; each box tracks its own engine.
     let counts: Vec<_> = cluster
@@ -149,7 +149,7 @@ pub(crate) async fn run(
                 }
                 MachineView frame=(frame) layout=(layout) charts_on=(false) armed=(armed) on_click=>(|_| FleetMsg::Start)
                 div css=[styles::CTRL] {
-                    Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(1, 400, 1)) at=(qps_at) fmt=(fmt_qps) moved=>(|n| FleetMsg::Qps(n))
+                    Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(1, 400, 1)) at=(qps_at) fmt=(fmt_qps) moved=>(FleetMsg::Qps)
                 }
             } else {
                 div css=[styles::FLEET] {

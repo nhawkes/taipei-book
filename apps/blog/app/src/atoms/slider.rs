@@ -142,7 +142,7 @@ pub async fn Slider(
     // A field mid-edit is not yet a number, and a move that isn't one is not a move.
     let moved = moved.try_contra_map(|e: Event| e.target_value?.parse().ok());
 
-    Ok(ctx
+    ctx
         .render(live_view! {
             label css=[styles::RANGE] {
                 span css=[styles::NAME] style=(format!("min-width:{width}px")) { (text) }
@@ -157,7 +157,7 @@ pub async fn Slider(
                 span css=[styles::VALUE] style=(pill) { $readout }
             }
         })
-        .await?)
+        .await
 }
 
 #[styles]

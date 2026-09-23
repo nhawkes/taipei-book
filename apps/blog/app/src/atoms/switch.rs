@@ -25,7 +25,7 @@ pub async fn Switch(
         let at = at.clone();
         ctx.computed(move |cx| !at.get(cx)).read()
     });
-    Ok(ctx.render(live_view! {
+    ctx.render(live_view! {
         button css=[styles::SWITCH, FOCUS] role=("switch") aria_checked=($is_on) onclick=(flipped) {
             span css=[styles::LABEL, $is_off => styles::PICKED] { (off) }
             span css=[styles::TRACK] {
@@ -33,7 +33,7 @@ pub async fn Switch(
             }
             span css=[styles::LABEL, $is_on => styles::PICKED] { (on) }
         }
-    }).await?)
+    }).await
 }
 
 #[styles]

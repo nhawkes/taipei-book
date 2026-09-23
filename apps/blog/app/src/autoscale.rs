@@ -331,9 +331,9 @@ pub(crate) async fn run(
                 button css=[bstyles::BASE, bstyles::CTA]
                     onclick=>(|_| Some(AutoscaleMsg::Toggle)) { $run_label }
                 Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(50, ARRIVALS_MAX as u32, 10))
-                    at=(qps_at) fmt=(fmt_qps) moved=>(|n| AutoscaleMsg::Qps(n))
+                    at=(qps_at) fmt=(fmt_qps) moved=>(AutoscaleMsg::Qps)
                 Slider name=(Name::new("speed", 38)) scale=(Scale::new(0, 100, 1))
-                    at=(speed_at) fmt=(fmt_speed) moved=>(|n| AutoscaleMsg::Speed(n))
+                    at=(speed_at) fmt=(fmt_speed) moved=>(AutoscaleMsg::Speed)
             }
             div css=[card::CTRLS] {
                 ToggleGroup items=(items) knob=(pill_knob) picked=(picked)

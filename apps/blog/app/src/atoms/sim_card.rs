@@ -14,7 +14,7 @@ pub async fn Tallies(
     ctx: Ctx<Setup, Never>,
     aggs: Vec<(&'static str, Signal<String>)>,
 ) -> idyll::Result {
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::TALLIES] {
                 @for (label, value) in (aggs) {
@@ -22,7 +22,7 @@ pub async fn Tallies(
                 }
             }
         })
-        .await?)
+        .await
 }
 
 #[styles]

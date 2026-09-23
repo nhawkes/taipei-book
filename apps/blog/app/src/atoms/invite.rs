@@ -26,7 +26,7 @@ pub async fn Invite(
     let asking = when.clone();
     let hugging = ctx.constant(hug.unwrap_or(false));
     let tag_hugging = hugging.clone();
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::WRAP, $when => styles::INVITE, $hugging => styles::HUG] {
                 @if ($asking) {
@@ -35,7 +35,7 @@ pub async fn Invite(
                 (children)
             }
         })
-        .await?)
+        .await
 }
 
 #[idyll_styles::styles]

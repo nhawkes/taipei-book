@@ -112,14 +112,14 @@ pub async fn ToggleGroup(
             )
         })
         .collect();
-    Ok(ctx.render(live_view! {
+    ctx.render(live_view! {
         span css=[styles::GROUP] {
             span css=[styles::KNOB] style=($knob) {}
             @for (label, on, selected, choose) in (rows) {
                 button css=[styles::ITEM, FOCUS, $on => selected] aria_pressed=($on) onclick=(choose) { (label) }
             }
         }
-    }).await?)
+    }).await
 }
 
 #[styles]

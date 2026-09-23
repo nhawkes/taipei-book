@@ -28,7 +28,7 @@ pub async fn page(ctx: Ctx<Setup, Never>, seed: PageSeed) -> idyll::Result {
         PageFragRoute::Index { chapters } => index(chapters),
         PageFragRoute::NotFound {} => not_found(),
     };
-    Ok(ctx
+    ctx
         .render_content(view! {
             div css=[styles::PAGE] {
                 @content(shell())
@@ -37,14 +37,14 @@ pub async fn page(ctx: Ctx<Setup, Never>, seed: PageSeed) -> idyll::Result {
                 }
             }
         })
-        .await?)
+        .await
 }
 
 /// The document-head content. The `<title>` is a contract field on the page node —
 /// the host writes it into the envelope, not the view.
 pub async fn head(ctx: Ctx<Setup, Never>, _seed: PageSeed) -> idyll::Result {
     let description = "Taipei is a library that integrates with tower to enable writing servers that behave well under stress without tuning.";
-    Ok(ctx
+    ctx
         .render_content(view! {
             meta charset=("utf-8")
             meta name=("viewport") content=("width=device-width, initial-scale=1")
@@ -58,7 +58,7 @@ pub async fn head(ctx: Ctx<Setup, Never>, _seed: PageSeed) -> idyll::Result {
             // from `blog-fonts` (`display:swap` in each `@font-face`), not a font CDN.
             link rel=("stylesheet") href=("/static/fonts.css")
         })
-        .await?)
+        .await
 }
 
 /// The shared page chrome, beside the styles it wears.

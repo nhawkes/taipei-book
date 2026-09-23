@@ -63,7 +63,7 @@ pub async fn LatencyTable(
         ctx.computed(move |cx| bars.get(cx).iter().any(|b| b.pct.is_some()))
             .read()
     };
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::TT] {
                 @for r in $rows [key = r.bar.label.clone()] {
@@ -84,7 +84,7 @@ pub async fn LatencyTable(
                 }
             }
         })
-        .await?)
+        .await
 }
 
 /// Which end of the box a whisker marks.

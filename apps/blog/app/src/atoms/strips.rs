@@ -89,7 +89,7 @@ pub async fn Strips(
     marks: Signal<String>,
 ) -> idyll::Result {
     let columns = format!("grid-template-columns:{labels}px 1fr 56px");
-    Ok(ctx.render(live_view! {
+    ctx.render(live_view! {
         div css=[styles::STRIPS] {
             @for r in $rows [key = r.label] {
                 div css=[styles::SROW] style=(columns.clone()) {
@@ -102,7 +102,7 @@ pub async fn Strips(
                 }
             }
         }
-    }).await?)
+    }).await
 }
 
 fn label(r: &StripRow) -> &'static str {

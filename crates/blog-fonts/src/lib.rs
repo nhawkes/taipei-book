@@ -71,10 +71,10 @@ pub fn install(static_dir: &Path) -> io::Result<()> {
     let mut css = String::new();
     for face in FACES {
         std::fs::write(fonts.join(face.file), face.bytes)?;
-        let _ = write!(
+        let _ = writeln!(
             css,
             "@font-face{{font-family:'{}';font-style:normal;font-weight:{};\
-             font-display:swap;src:url('/static/fonts/{}') format('woff2')}}\n",
+             font-display:swap;src:url('/static/fonts/{}') format('woff2')}}",
             face.family, face.weight, face.file,
         );
     }

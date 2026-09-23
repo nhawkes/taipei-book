@@ -607,7 +607,7 @@ pub(crate) async fn run(
             //    code that produces it. Each policy keeps its own machine. ──
             @if (has_policies) {
                 div css=[cstyles::POLICY] {
-                    ToggleGroup items=(policy_items) knob=(policy_knob) picked=>(|i| SimMsg::SetPolicy(i))
+                    ToggleGroup items=(policy_items) knob=(policy_knob) picked=>(SimMsg::SetPolicy)
                     pre css=[cstyles::POLICY_CODE] style=($policy_fade) {
                         code {
                             @for (_, tok) in $policy_code {
@@ -620,7 +620,7 @@ pub(crate) async fn run(
 
             // ── server tabs: pick the leaf-server behavior to compare ──
             @if (show_tabs) {
-                ToggleGroup items=(tabs.clone()) knob=(tab_knob.clone()) picked=>(|i| SimMsg::SetBehavior(i))
+                ToggleGroup items=(tabs.clone()) knob=(tab_knob.clone()) picked=>(SimMsg::SetBehavior)
             }
 
             // ── the running composition, verbatim (`#[shown]` capture). A policy pill
@@ -659,7 +659,7 @@ pub(crate) async fn run(
                     div css=[cstyles::ROW_BODY] {
                         Button kind=(ButtonKind::Cta) label=(run_lbl) pressed=>(|_| SimMsg::Toggle)
                         Invite when=(invite_speed) hint=("Increase speed to see rejections") {
-                            Slider name=(Name::new("speed", 44)) scale=(Scale::new(0, 100, 1)) at=(speed_at) fmt=(fmt_speed) moved=>(|n| SimMsg::Speed(n))
+                            Slider name=(Name::new("speed", 44)) scale=(Scale::new(0, 100, 1)) at=(speed_at) fmt=(fmt_speed) moved=>(SimMsg::Speed)
                         }
                         Button kind=(ButtonKind::Solid) label=(reset_btn) pressed=>(|_| SimMsg::Reset)
                     }
@@ -672,9 +672,9 @@ pub(crate) async fn run(
                         div css=[cstyles::ROW_BODY] {
                             Button kind=(ButtonKind::Primary) label=(inject_btn) pressed=>(|_| SimMsg::Inject)
                             Invite when=(invite_arrivals) hint=("Increase arrivals to cause a backlog") {
-                                Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(1, 400, 1)) at=(qps_at) fmt=(fmt_qps) moved=>(|n| SimMsg::Qps(n))
+                                Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(1, 400, 1)) at=(qps_at) fmt=(fmt_qps) moved=>(SimMsg::Qps)
                             }
-                            Slider name=(Name::new("response timeout", 118)) scale=(Scale::new(100, 5000, 100)) at=(rtmo_at) fmt=(fmt_ms) moved=>(|n| SimMsg::RespTimeoutMs(n))
+                            Slider name=(Name::new("response timeout", 118)) scale=(Scale::new(100, 5000, 100)) at=(rtmo_at) fmt=(fmt_ms) moved=>(SimMsg::RespTimeoutMs)
                         }
                     }
                 }
@@ -686,7 +686,7 @@ pub(crate) async fn run(
                         // retunes the running machine (never a rebuild), so the reader
                         // flips policies mid-incident and watches the takeover.
                         @if (has_gates) {
-                            ToggleGroup items=(gate_tabs.clone()) knob=(gate_knob.clone()) picked=>(|i| SimMsg::SetGate(i))
+                            ToggleGroup items=(gate_tabs.clone()) knob=(gate_knob.clone()) picked=>(SimMsg::SetGate)
                         }
                         @if ($show_bp) {
                             Button kind=(ButtonKind::Ghost) label=(bp_btn) pressed=>(|_| SimMsg::ToggleBackpressure)
@@ -696,11 +696,11 @@ pub(crate) async fn run(
                             Button kind=(ButtonKind::Ghost) label=(ptmo_btn) pressed=>(|_| SimMsg::ToggleProcessingTimeout)
                         }
                         @if ($limit_row) {
-                            Slider name=(Name::new("concurrency limit", 118)) scale=(Scale::new(1, 48, 1)) at=(cc_at) fmt=(fmt_int) moved=>(|n| SimMsg::Concurrency(n)) ?driven=(cc_driven)
+                            Slider name=(Name::new("concurrency limit", 118)) scale=(Scale::new(1, 48, 1)) at=(cc_at) fmt=(fmt_int) moved=>(SimMsg::Concurrency) ?driven=(cc_driven)
                         }
                         @if ($server_knobs) {
                             Invite when=(invite_io) hint=("Decrease IO speed to mimic a slow database") {
-                                Slider name=(Name::new("IO speed", 60)) scale=(Scale::new(10, 200, 5)) at=(io_at) fmt=(fmt_io) moved=>(|n| SimMsg::IoSpeed(n))
+                                Slider name=(Name::new("IO speed", 60)) scale=(Scale::new(10, 200, 5)) at=(io_at) fmt=(fmt_io) moved=>(SimMsg::IoSpeed)
                             }
                         }
                         }

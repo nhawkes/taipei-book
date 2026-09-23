@@ -179,7 +179,7 @@ pub async fn TenantStage(
         .collect();
     let placed_stage = measured.try_contra_map(|e: Event| e.rect().map(Measured::Stage));
 
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[wstyles::STAGE] measure=(placed_stage) {
                 div css=[wstyles::CLIENTS] {
@@ -213,7 +213,7 @@ pub async fn TenantStage(
                 }
             }
         })
-        .await?)
+        .await
 }
 
 #[styles]

@@ -19,7 +19,7 @@ pub struct Key {
 
 #[idyll::component]
 pub async fn Legend(ctx: Ctx<Setup, Never>, keys: Vec<Key>) -> idyll::Result {
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::ROW] {
                 @for key in (keys) {
@@ -29,7 +29,7 @@ pub async fn Legend(ctx: Ctx<Setup, Never>, keys: Vec<Key>) -> idyll::Result {
                 }
             }
         })
-        .await?)
+        .await
 }
 
 fn swatch(key: &Key) -> String {

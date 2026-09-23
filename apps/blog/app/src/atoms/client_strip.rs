@@ -55,7 +55,7 @@ pub async fn ClientStrip(
     /// owns no messages, so the caller supplies the carrier.
     measured: Callback<(usize, Rect)>,
 ) -> idyll::Result {
-    Ok(ctx.render(live_view! {
+    ctx.render(live_view! {
         div css=[styles::STRIP] {
             @for (at, ink) in (dots) {
                 @if (at < $count) {
@@ -64,7 +64,7 @@ pub async fn ClientStrip(
                 }
             }
         }
-    }).await?)
+    }).await
 }
 
 #[styles]

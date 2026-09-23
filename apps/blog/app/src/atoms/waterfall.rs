@@ -102,7 +102,7 @@ pub async fn Waterfall(
         })
         .read()
     };
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::WF] {
                 @for r in $rows [key = r.leg.label.clone()] {
@@ -133,7 +133,7 @@ pub async fn Waterfall(
                 }
             }
         })
-        .await?)
+        .await
 }
 
 fn label(r: &Placed) -> String {

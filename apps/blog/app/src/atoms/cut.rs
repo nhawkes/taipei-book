@@ -80,7 +80,7 @@ pub async fn CutColumn(
         let at = at.clone();
         ctx.computed(move |cx| ink_of(at.get(cx))).read()
     };
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::COL] style=($ink) {
                 Slider name=(Name::new("", 0)) scale=(CUT_SCALE) at=(at) fmt=(cut_label)
@@ -89,7 +89,7 @@ pub async fn CutColumn(
                 Waterfall legs=(legs) axis=(axis)
             }
         })
-        .await?)
+        .await
 }
 
 #[styles]

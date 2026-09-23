@@ -37,7 +37,7 @@ pub async fn ClientGrid(
     /// supplies the carrier.
     measured: Callback<(usize, Rect)>,
 ) -> idyll::Result {
-    Ok(ctx.render(live_view! {
+    ctx.render(live_view! {
         div css=[styles::GRID] style=(spread($count)) {
             @for (at, client) in (clients) {
                 @if (at < $count) {
@@ -50,7 +50,7 @@ pub async fn ClientGrid(
                 }
             }
         }
-    }).await?)
+    }).await
 }
 
 fn spread(clients: usize) -> String {

@@ -314,19 +314,19 @@ pub(crate) async fn run(
                 button css=[bstyles::BASE, bstyles::CTA]
                     onclick=>(|_| Some(LbMsg::Toggle)) { $run_label }
                 Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(50, 900, 10))
-                    at=(qps_at) fmt=(fmt_qps) moved=>(|n| LbMsg::Qps(n))
+                    at=(qps_at) fmt=(fmt_qps) moved=>(LbMsg::Qps)
                 Slider name=(Name::new("lifetime", 52)) scale=(Scale::new(200, 10_000, 200))
-                    at=(lifetime_at) fmt=(fmt_life) moved=>(|n| LbMsg::Lifetime(n))
+                    at=(lifetime_at) fmt=(fmt_life) moved=>(LbMsg::Lifetime)
                 Slider name=(Name::new("speed", 38)) scale=(Scale::new(0, 100, 1))
-                    at=(speed_at) fmt=(fmt_speed) moved=>(|n| LbMsg::Speed(n))
+                    at=(speed_at) fmt=(fmt_speed) moved=>(LbMsg::Speed)
             }
             div css=[card::CTRLS] {
                 Slider name=(Name::new("clients", 46)) scale=(Scale::new(10, MAX_CLIENTS as u32, 10))
-                    at=(clients_at) fmt=(fmt_count) moved=>(|n| LbMsg::Clients(n))
+                    at=(clients_at) fmt=(fmt_count) moved=>(LbMsg::Clients)
                 Slider name=(Name::new("balancers", 58)) scale=(Scale::new(1, MAX_LBS as u32, 1))
-                    at=(lbs_at) fmt=(fmt_count) moved=>(|n| LbMsg::Lbs(n))
+                    at=(lbs_at) fmt=(fmt_count) moved=>(LbMsg::Lbs)
                 Slider name=(Name::new("servers", 46)) scale=(Scale::new(2, 10, 1))
-                    at=(servers_at) fmt=(fmt_count) moved=>(|n| LbMsg::Servers(n))
+                    at=(servers_at) fmt=(fmt_count) moved=>(LbMsg::Servers)
             }
             div css=[card::CTRLS] {
                 ToggleGroup items=(policy_items) knob=(policy_knob) picked=(picked_policy)

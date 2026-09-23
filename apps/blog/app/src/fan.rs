@@ -60,7 +60,7 @@ pub(crate) async fn run(
 
     // Each server's client-count colours the clients that chose it. Routing is settled, so
     // this is the one reading the still can make.
-    let mut per_server_clients = vec![0usize; SERVERS];
+    let mut per_server_clients = [0usize; SERVERS];
     for &s in &assignment {
         per_server_clients[s] += 1;
     }

@@ -88,14 +88,14 @@ async fn Metric(
     let count = v.clone();
     let text = ctx.computed(move |cx| group(count.get(cx))).read();
     let zero = ctx.computed(move |cx| v.get(cx) == 0).read();
-    Ok(ctx
+    ctx
         .render(live_view! {
             div css=[styles::M] {
                 span css=[styles::ML] { (label) }
                 span css=[styles::MV, hue, $zero => styles::ZERO] { $text }
             }
         })
-        .await?)
+        .await
 }
 
 #[idyll::component]
@@ -230,7 +230,7 @@ pub fn group(v: usize) -> String {
     let mut out = String::new();
     let n = s.len();
     for (i, ch) in s.chars().enumerate() {
-        if i > 0 && (n - i) % 3 == 0 {
+        if i > 0 && (n - i).is_multiple_of(3) {
             out.push('\u{2009}');
         }
         out.push(ch);
