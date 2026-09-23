@@ -24,7 +24,6 @@ use idyll_styles::styles;
 use crate::atoms::button::styles as bstyles;
 use crate::atoms::client_strip::{ink, ink_frame, ClientStrip};
 use crate::atoms::cut::{at_rest, cut_label, ink_of, styles as cut_styles, CUT_SCALE};
-use crate::atoms::figure::FIG3;
 use crate::atoms::lanes::{Ink, LaneTier, WIRES};
 use crate::atoms::legend::{Key, Legend};
 use crate::atoms::server_box::group;
@@ -233,11 +232,6 @@ pub(crate) async fn run(
         .map(|i| (i, server_name(i), counts[i].read(), ctx.constant(false)))
         .collect();
 
-    // The gap between the busiest machine and the emptiest — what picking blindly costs,
-    // before any of it has become a latency. This is the reading the loop card is for.
-    let spread_most = ctx.mutable_signal("—".to_string());
-    let spread_least = ctx.mutable_signal("—".to_string());
-
     let policy = ctx.mutable_signal(0usize);
     let items: Vec<ToggleItem> = cast
         .iter()
@@ -361,7 +355,6 @@ pub(crate) async fn run(
     let is_policies = shows == Shows::Policies;
     let is_pool = shows == Shows::Pool;
     let has_pill = is_policies || is_pool;
-    let (spread_most_read, spread_least_read) = (spread_most.read(), spread_least.read());
 
     let mut ctx = ctx.render(live_view! {
         div css=[card::CARD, crate::atoms::sim_card::styles::SIM] role=("group") {
@@ -390,7 +383,6 @@ pub(crate) async fn run(
                 }
                 canvas css=[wstyles::WIRES, wstyles::UNDER] painting=(picture) {}
             }
-            div css=[styles::LABEL] { "busiest machine over emptiest · " span css=[FIG3] { $spread_most_read } " over " span css=[FIG3] { $spread_least_read } }
             @if (has_pill) {
                 div css=[styles::DIAL] style=($cut_ink) {
                     Slider name=(Name::new("", 0)) scale=(CUT_SCALE) at=(cut_at)
@@ -590,10 +582,6 @@ pub(crate) async fn run(
                 for (signal, server) in counts.iter().zip(&fleet) {
                     signal.set(&turn, *server);
                 }
-                let loads: Vec<usize> = fleet.iter().map(|s| s.inflight).collect();
-                let (most, least) = spread_of(&loads);
-                spread_most.set(&turn, most);
-                spread_least.set(&turn, least);
 
                 let answered = engine.answered();
                 served.set(&turn, group(answered.trips));
@@ -937,15 +925,6 @@ fn against(column: usize, ms: f64, baseline: Option<f64>) -> Option<Against> {
         BASELINE => Some(Against::Baseline),
         _ if baseline > 0.0 => Some(Against::By((ms - baseline) / baseline * 100.0)),
         _ => None,
-    }
-}
-
-/// The imbalance, as the two numbers it is made of. A ratio would hide the case the chapter is
-/// about — a machine with nothing on it, where the ratio is not a number at all.
-fn spread_of(loads: &[usize]) -> (String, String) {
-    match (loads.iter().max(), loads.iter().min()) {
-        (Some(&most), Some(&least)) => (most.to_string(), least.to_string()),
-        _ => ("—".to_string(), "—".to_string()),
     }
 }
 

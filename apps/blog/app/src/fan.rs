@@ -168,7 +168,6 @@ pub(crate) async fn run(
                     }
                     canvas css=[wstyles::WIRES, wstyles::UNDER] painting=(picture) {}
                 }
-                div css=[styles::LABEL] { "latency · box p25–p95 · line p50 · from this batch" }
                 LatencyTable bars=(latency_rows) axis=(latency_axis)
                 Legend keys=(keys)
             }
@@ -346,14 +345,6 @@ pub mod styles {
     use crate::atoms::stage::Stage;
     use idyll_styles::Style;
 
-    pub const LABEL: Style = css! {{
-        font_size: "10px",
-        letter_spacing: ".08em",
-        text_transform: "uppercase",
-        color: "#aab09c",
-        font_weight: 600,
-        margin: "16px 2px 8px",
-    }};
     // Client dot ring by their server's load — the same amber→red ramp the shed wires and
     // the stage draw in, read straight off the palette so a retint is one edit in `Stage`.
     // The resting ring alone is a plain neutral (no palette token names it).
