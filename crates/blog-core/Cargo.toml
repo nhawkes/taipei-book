@@ -1,0 +1,24 @@
+[package]
+name = "blog-core"
+publish = false
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[features]
+default = ["markdown"]
+# The content pipeline: the markdown→View mapping and the content-directory index.
+# Off, the crate is just the sim fence's wire vocabulary — what the app's live half
+# needs; the parser stays out of the client bundle.
+markdown = ["dep:pulldown-cmark", "dep:anyhow", "dep:serde_json", "dep:gray_matter"]
+
+[dependencies]
+pulldown-cmark = { version = "0.12", optional = true }
+anyhow = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true, optional = true }
+strum = { version = "0.26", features = ["derive"] }
+idyll-route = { version = "0.1" }
+idyll = { version = "0.1" }
+idyll-styles = { version = "0.1" }
+gray_matter = { version = "0.3.2", optional = true }

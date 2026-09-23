@@ -1,0 +1,37 @@
+[package]
+name = "blog-app"
+publish = false
+version = "0.1.0"
+edition = "2021"
+description = "The blog's island table — the `sim` island (DOM simulations, including the real-taipei queue visualiser), its fragments, and the route query they compose into."
+
+[lib]
+# rlib: the native server links it (the route query artifact) and tests drive it.
+# cdylib: one `wasm32-wasip2` component (the `idyll:ssr` `app` world: islands + mount +
+# dispatch + deliver) — mounted by the server membrane AND jco-transpiled for the browser.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+idyll = { version = "0.1" }
+idyll-data = { version = "0.1", default-features = false }
+idyll-styles = { version = "0.1" }
+blog-core = { path = "../../../crates/blog-core", default-features = false }
+idyll-route = { version = "0.1" }
+serde = { workspace = true }
+
+# The queue visualiser runs the REAL taipei middleware inside the island: a tokio
+# current-thread runtime pumped per frame against a virtual clock. Deliberately NOT the
+# workspace tokio (features = ["full"] pulls net/signal, which don't build on wasm).
+taipei = { version = "0.1", default-features = false }
+taipei-macros = { path = "../../../crates/taipei-macros" }
+tokio = { version = "1", default-features = false, features = ["rt", "sync", "macros", "time", "test-util"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+thiserror = "2"
+tower = { version = "0.5", features = ["util"] }
+icondata_lu = "0.1.0"
+icondata_core = "0.1.0"
+
+# The wasm build uses only `wit-bindgen` — the app exposes a WIT interface and imports
+# WASI, nothing else. No wasm-bindgen / web-sys / JS bindings.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wit-bindgen = "0.51"

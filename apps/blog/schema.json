@@ -1,0 +1,194 @@
+{
+  "nodes": [
+    {
+      "name": "Page",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "title",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "route",
+          "ty": {
+            "kind": "value",
+            "value": "Route"
+          }
+        },
+        {
+          "name": "code_tabs",
+          "ty": {
+            "kind": "list",
+            "of": {
+              "kind": "value",
+              "value": "CodeGroup"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "values": [
+    {
+      "name": "Chapter",
+      "fields": [
+        {
+          "name": "slug",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "title",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CodeGroup",
+      "fields": [
+        {
+          "name": "id",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "tabs",
+          "ty": {
+            "kind": "list",
+            "of": {
+              "kind": "value",
+              "value": "CodeTab"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CodeTab",
+      "fields": [
+        {
+          "name": "label",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "lang",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "code",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Request",
+      "fields": [
+        {
+          "name": "path",
+          "ty": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "enums": [
+    {
+      "name": "Route",
+      "variants": [
+        {
+          "name": "Article",
+          "fields": [
+            {
+              "name": "body",
+              "ty": {
+                "kind": "content"
+              }
+            },
+            {
+              "name": "previous",
+              "ty": {
+                "kind": "optional",
+                "of": {
+                  "kind": "value",
+                  "value": "Chapter"
+                }
+              }
+            },
+            {
+              "name": "next",
+              "ty": {
+                "kind": "optional",
+                "of": {
+                  "kind": "value",
+                  "value": "Chapter"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Index",
+          "fields": [
+            {
+              "name": "chapters",
+              "ty": {
+                "kind": "list",
+                "of": {
+                  "kind": "value",
+                  "value": "Chapter"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "NotFound"
+        }
+      ]
+    }
+  ],
+  "roots": [
+    {
+      "name": "route",
+      "args": [
+        {
+          "name": "request",
+          "ty": {
+            "kind": "value",
+            "value": "Request"
+          }
+        }
+      ],
+      "output": "Page",
+      "list": false
+    }
+  ],
+  "mutations": []
+}
