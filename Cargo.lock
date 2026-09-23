@@ -1741,9 +1741,9 @@ dependencies = [
 
 [[package]]
 name = "idyll-serve"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67679d971b719a7401895f85852906c68be0eea7442f54f213dd01edf6b6f103"
+checksum = "69e8d4ba672780a2b3564ee4aa1f2008b9d5fb747aa5f4a25c88027e8fcfe24b"
 dependencies = [
  "anyhow",
  "axum",
