@@ -280,7 +280,7 @@ pub(crate) async fn run(
     let marks_sig = marks.read();
 
     let mut ctx = ctx.render(live_view! {
-        div css=[card::CARD] role=("group") {
+        div css=[card::CARD, crate::atoms::sim_card::styles::SIM] role=("group") {
             Tallies aggs=(aggs)
             div css=[wstyles::TIER, styles::PICTURE] measure=>(|e| e.rect().map(LbMsg::Stage)) {
                 ClientStrip dots=(strip) count=(strip_count) measured=(dot_measured)

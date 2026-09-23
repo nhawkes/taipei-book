@@ -211,7 +211,7 @@ pub mod styles {
         display: "flex",
         align_items: "center",
         gap: "12px",
-        margin: "0 0 10px",
+        margin: "12px 0 10px",
         font_family: "ui-monospace, Menlo, monospace",
         font_size: "13px",
         min_height: "34px",

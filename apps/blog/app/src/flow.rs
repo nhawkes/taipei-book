@@ -364,7 +364,7 @@ pub(crate) async fn run(
     let (spread_most_read, spread_least_read) = (spread_most.read(), spread_least.read());
 
     let mut ctx = ctx.render(live_view! {
-        div css=[card::CARD] role=("group") {
+        div css=[card::CARD, crate::atoms::sim_card::styles::SIM] role=("group") {
             Tallies aggs=(aggs)
             div css=[card::CTRLS] {
                 button css=[bstyles::BASE, bstyles::CTA]

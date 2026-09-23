@@ -78,10 +78,6 @@ pub(crate) async fn run(
         .enumerate()
         .map(|(i, col)| (i, col, busy[i].read()))
         .collect();
-    let batch_count = format!(
-        "{CLIENTS} clients · {SERVERS} servers · {} requests",
-        CLIENTS * crate::multi::REQS_PER_CLIENT
-    );
 
     let bars = ctx.mutable_signal(Vec::new());
     let axis = ctx.mutable_signal(1.0_f64);
@@ -150,12 +146,11 @@ pub(crate) async fn run(
 
     let mut ctx = ctx
         .render(live_view! {
-            div css=[crate::atoms::sim_card::styles::CARD] {
+            div css=[crate::atoms::sim_card::styles::CARD, crate::atoms::sim_card::styles::SIM] {
                 Tallies aggs=(aggs)
                 div css=[card::CTRLS] {
                     button css=[bstyles::BASE, bstyles::CTA]
                         onclick=>(|_| Some(FanMsg::Send)) { "▶ send" }
-                    span css=[card::COUNT] { (batch_count) }
                 }
                 div css=[wstyles::STAGE] measure=>(|e| e.rect().map(FanMsg::Stage)) {
                     div css=[wstyles::CLIENTS] {

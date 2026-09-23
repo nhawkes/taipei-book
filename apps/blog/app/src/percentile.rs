@@ -17,7 +17,6 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 
 use crate::atoms::cut::styles as cut_styles;
-use crate::atoms::figure::{FIG3, FIG4};
 use idyll::{live_view, Ctx, Setup, Signal};
 use idyll_styles::styles;
 
@@ -95,10 +94,6 @@ const AXIS_HEADROOM: f64 = 1.05;
 /// over a delta of seconds, and a message arm runs to completion with nothing able to interrupt
 /// it — so an unclamped delta is one long freeze rather than one long frame.
 const MAX_STEP_MS: f64 = 50.0;
-
-/// The caption before a scale has been sent. A count of nothing out of a thousand is a
-/// measurement of a batch nobody asked for, so until there is a batch the card says so.
-const AT_REST: &str = "fills in as clients respond";
 
 /// How long a leg of a round trip takes to travel its wire, in seconds: out to a machine, home
 /// with a refusal, and home with the answer.
@@ -267,18 +262,6 @@ pub(crate) async fn run(
     ctx.frames(&running.read(), PercentileMsg::Tick);
 
     let counted = ctx.mutable_signal(PRESETS[OPENS_ON].batch);
-    let (clients, servers, requests) = {
-        let counted = counted.read();
-        let c = counted.clone();
-        let s = counted.clone();
-        (
-            ctx.computed(move |cx| c.get(cx).clients.to_string()).read(),
-            ctx.computed(move |cx| s.get(cx).servers.to_string()).read(),
-            ctx.computed(move |cx| counted.get(cx).requests().to_string())
-                .read(),
-        )
-    };
-    let landed = ctx.mutable_signal(String::from(AT_REST));
 
     // The picture is a pure function of three measurements — the stage's own box and every
     // client's and server's rect inside it — so a wire re-bows whenever the layout reflows and
@@ -388,15 +371,11 @@ pub(crate) async fn run(
     let keys = keys();
 
     let mut ctx = ctx.render(live_view! {
-        div css=[crate::atoms::sim_card::styles::CARD] {
+        div css=[crate::atoms::sim_card::styles::CARD, crate::atoms::sim_card::styles::SIM] {
             div css=[card::CTRLS] {
                 ToggleGroup items=(scales) knob=(scale_knob) picked=>(PercentileMsg::Scale)
                 button css=[bstyles::BASE, bstyles::CTA]
                     onclick=>(|_| Some(PercentileMsg::Send)) { "▶ send" }
-                span css=[card::COUNT] { span css=[FIG3] { $clients } " clients · " span css=[FIG3] { $servers } " servers · " span css=[FIG4] { $requests } " requests" }
-            }
-            div css=[styles::LAB] {
-                "experience breakdown · " span css=[styles::RECV] { $landed } " · shared ms scale"
             }
             div css=[styles::SPLIT] {
                 div css=[styles::COLH] { span { "clients" } span { "servers" } }
@@ -435,7 +414,6 @@ pub(crate) async fn run(
         fleet,
         idle,
         axis,
-        landed,
         crowd,
         painted,
     };
@@ -561,7 +539,6 @@ struct Readouts {
     fleet: Vec<idyll::MutableSignal<ServerCounts>>,
     idle: Vec<idyll::MutableSignal<bool>>,
     axis: idyll::MutableSignal<f64>,
-    landed: idyll::MutableSignal<String>,
     /// One ring per client at the largest scale; a smaller scale draws a prefix of them.
     crowd: Vec<idyll::MutableSignal<Client>>,
     /// What each ring is showing — the card's own copy of the field, so a frame can tell which
@@ -588,13 +565,6 @@ impl Readouts {
         for cut in &self.cuts {
             cut.legs.set(turn, phases_of(at(home, cut.at.now(turn))));
         }
-        self.landed.set(
-            turn,
-            match &machine.engine {
-                None => String::from(AT_REST),
-                Some(_) => format!("{} / {} clients", home.len(), batch.clients),
-            },
-        );
         for ((ring, painted), next) in self
             .crowd
             .iter()
@@ -907,23 +877,5 @@ pub mod styles {
         box_shadow: "none",
         align_items: "stretch",
         padding_top: "6px",
-    }};
-
-    /// What the two columns are, above them.
-    pub const LAB: Style = css! {{
-        font_size: "10px",
-        letter_spacing: "0.08em",
-        text_transform: "uppercase",
-        color: Palette::ink_faint,
-        font_weight: 600,
-        margin: "0 2px 8px",
-    }};
-
-    /// How much of the batch is home, inside the caption. Tabular so a count that climbs every
-    /// frame does not shuffle the words after it.
-    /// Boxed to its longest phrasing, the resting one, so the words after it never shift.
-    pub const RECV: Style = css! {{
-        display: "inline-block",
-        min_width: "27ch",
     }};
 }

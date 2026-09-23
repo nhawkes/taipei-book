@@ -139,7 +139,7 @@ pub(crate) async fn run(
     let up_lbl = ctx.constant("Overview".to_string());
 
     let mut ctx = ctx.render(live_view! {
-        div css=[crate::atoms::sim_card::styles::CARD] {
+        div css=[crate::atoms::sim_card::styles::CARD, crate::atoms::sim_card::styles::SIM] {
             @if ($zoomed) {
                 div css=[styles::BAR] {
                     Invite when=(up_when) hint=("Click to see summary view") ?hug=(true) {

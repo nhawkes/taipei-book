@@ -60,6 +60,8 @@ pub mod styles {
         box_shadow: "0 6px 22px rgba(60,70,40,0.07)",
         padding: "14px",
     }};
+    /// The space a sim keeps below it, like the queue sims' outer box.
+    pub const SIM: Style = css! {{ margin: "0 0 28px" }};
     pub const TALLIES: Style = css! {{
         display: "flex",
         align_items: "baseline",
