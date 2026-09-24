@@ -316,6 +316,8 @@ pub struct Obs {
     /// Replies in the outbound-network leg (a verdict given, not yet received) — the same
     /// count for the other direction, with [`Station::NetworkOut`] on `live`.
     pub net_out: usize,
+    /// Abandoned requests still falling, with [`Station::Dropping`] on `live`.
+    pub dropping: usize,
     pub syn_backlog: Vec<(u32, f64)>,
     pub queue_stubs: Vec<(u32, f64)>,
     pub cpu: Vec<CpuTask>,
@@ -379,6 +381,7 @@ impl Default for Obs {
             t: 0.0,
             net_in: 0,
             net_out: 0,
+            dropping: 0,
             syn_backlog: Vec::new(),
             queue_stubs: Vec::new(),
             cpu: Vec::new(),
@@ -626,6 +629,9 @@ pub enum Station {
     /// the [`Reply`] because that is what the leg *is*: the exit it rides and the colour it
     /// wears are what the stack decided.
     NetworkOut { p: f64, reply: Reply },
+    /// The client gave up and nothing will travel home: the request falls out of the
+    /// picture where it stood, on the same clock its reply would have ridden.
+    Dropping { p: f64 },
     /// On a core for the 1 ms accept burst that stamps the queue-start time — `accept()`
     /// plus the handler `spawn`. Drawn in the accept colour on the same core the burst
     /// runs on; the dot heads there like any CPU phase.
@@ -867,6 +873,9 @@ pub(crate) struct Sim {
     /// pointing the other way, from the instant the stack answered to the instant the client
     /// has it.
     net_out: Vec<(Flight, Reply)>,
+    /// Requests whose client gave up, falling out of the picture where they stood — the leg
+    /// an abandoned request travels instead of the one home.
+    dropping: Vec<Flight>,
     syn_backlog: Vec<(u32, f64)>,
     queue_stubs: Vec<(u32, f64)>,
     cpu: Vec<CpuRec>,
@@ -907,6 +916,7 @@ impl Sim {
             hops: Vec::new(),
             net_in: Vec::new(),
             net_out: Vec::new(),
+            dropping: Vec::new(),
             syn_backlog: Vec::new(),
             queue_stubs: Vec::new(),
             cpu: Vec::new(),
@@ -1500,6 +1510,20 @@ pub(crate) async fn arrive(
     send_t
 }
 
+/// The abandoned request's last leg, live on [`Station::Dropping`] the whole way — the
+/// counterpart of the reply's leg home, so a give-up leaves the picture on the engine's
+/// clock rather than vanishing from it.
+async fn fall(state: &Arc<Mutex<Sim>>, epoch: &Epoch, id: u32, dur_ms: f64) {
+    {
+        let mut s = state.lock().unwrap();
+        let since = epoch.now_ms();
+        s.dropping.push(Flight { id, since, dur_ms });
+        s.hop(id, Station::Dropping { p: 0.0 }, since);
+    }
+    sleep(span(dur_ms)).await;
+    state.lock().unwrap().dropping.retain(|f| f.id != id);
+}
+
 /// A healthy server serving one already-arrived request, from the accept burst to the
 /// verdict — the whole journey through the real taipei stack, with the server's own
 /// counters kept as it goes.
@@ -1599,23 +1623,26 @@ pub(crate) async fn serve(
 
     // The reply's own leg: a real sleep home, live on [`Station::NetworkOut`] the whole way,
     // so a response travels the picture exactly as the request did. A verdict that sends no
-    // reply is the client's own give-up, and goes nowhere.
-    if let Some(reply) = outcome.reply() {
-        {
-            let mut s = state.lock().unwrap();
-            let since = epoch.now_ms();
-            s.net_out.push((
-                Flight {
-                    id,
-                    since,
-                    dur_ms: net.out_ms,
-                },
-                reply,
-            ));
-            s.hop(id, Station::NetworkOut { p: 0.0, reply }, since);
+    // reply is the client's own give-up, and falls instead.
+    match outcome.reply() {
+        Some(reply) => {
+            {
+                let mut s = state.lock().unwrap();
+                let since = epoch.now_ms();
+                s.net_out.push((
+                    Flight {
+                        id,
+                        since,
+                        dur_ms: net.out_ms,
+                    },
+                    reply,
+                ));
+                s.hop(id, Station::NetworkOut { p: 0.0, reply }, since);
+            }
+            sleep(span(net.out_ms)).await;
+            state.lock().unwrap().net_out.retain(|(f, _)| f.id != id);
         }
-        sleep(span(net.out_ms)).await;
-        state.lock().unwrap().net_out.retain(|(f, _)| f.id != id);
+        None => fall(&state, &epoch, id, net.out_ms).await,
     }
 
     // Receipt: the client has its answer. Every tally is stamped at the end of the leg it
@@ -2648,10 +2675,17 @@ impl SimEngine {
             if behavior == Behavior::NeverAccept {
                 let tmo = state.lock().unwrap().response_timeout_ms;
                 sleep(span(tmo)).await;
-                let mut s = state.lock().unwrap();
-                s.leave_backlog(id);
-                s.stats.response_timeout += 1;
-                s.departures.push((id, Outcome::ResponseTimeout));
+                {
+                    let mut s = state.lock().unwrap();
+                    s.leave_backlog(id);
+                    s.stats.response_timeout += 1;
+                }
+                fall(&state, &epoch, id, net.out_ms).await;
+                state
+                    .lock()
+                    .unwrap()
+                    .departures
+                    .push((id, Outcome::ResponseTimeout));
                 return;
             }
 
@@ -2671,11 +2705,14 @@ impl SimEngine {
                     p = cores.acquire() => p,
                     _ = sleep_until(deadline) => {
                         // Never accepted — every worker is already a hung zombie.
-                        let mut s = state.lock().unwrap();
-                        s.leave_backlog(id);
-                        s.stats.response_timeout += 1;
-                        s.timeout_window.push_back(epoch.now_ms());
-                        s.departures.push((id, Outcome::ResponseTimeout));
+                        {
+                            let mut s = state.lock().unwrap();
+                            s.leave_backlog(id);
+                            s.stats.response_timeout += 1;
+                            s.timeout_window.push_back(epoch.now_ms());
+                        }
+                        fall(&state, &epoch, id, net.out_ms).await;
+                        state.lock().unwrap().departures.push((id, Outcome::ResponseTimeout));
                         return;
                     }
                 };
@@ -2748,6 +2785,7 @@ impl SimEngine {
             self.obs.t = now;
             self.obs.net_in = s.net_in.len();
             self.obs.net_out = s.net_out.len();
+            self.obs.dropping = s.dropping.len();
             self.obs.hops = std::mem::take(&mut s.hops);
             // Last tick's departures have been read — their latencies folded, their fares
             // banked — so the engine is done naming them. Forgetting here rather than at the
@@ -2828,6 +2866,9 @@ impl SimEngine {
                         reply: *reply,
                     },
                 ));
+            }
+            for f in &s.dropping {
+                live.push((f.id, Station::Dropping { p: f.p(now) }));
             }
             for c in &s.cpu {
                 let p = (1.0 - (c.dur_ms - (now - c.start_ms)).max(0.0) / c.dur_ms.max(1.0))
@@ -3539,6 +3580,7 @@ mod tests {
                     Station::RunQueue { .. } => saw[4] = true,
                     Station::Cpu { .. } | Station::Io { .. } => saw[5] = true,
                     Station::NetworkOut { .. } => saw[6] = true,
+                    Station::Dropping { .. } => {}
                 }
             }
             for (id, st) in &o.live {
@@ -3560,7 +3602,8 @@ mod tests {
                 + o.cpu.len()
                 + o.io_sleeping
                 + o.net_in
-                + o.net_out;
+                + o.net_out
+                + o.dropping;
             assert_eq!(o.live.len(), expected, "live partitions the collections");
             departed += o.departures.len() as u32;
         }

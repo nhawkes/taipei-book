@@ -512,7 +512,8 @@ fn walk_anim(parity: bool) -> ::idyll_styles::Keyframes {
 /// A dot is solid. It enters the picture already travelling, from off-stage down the
 /// SYN pipe, and leaves past the right edge — so it never appears or disappears where
 /// the reader is looking, and its opacity is 1 for its whole journey. The exception is
-/// the request nobody is waiting for any more ([`ViewState::leaving`](crate::simview)).
+/// the request nobody is waiting for any more, which fades as it falls
+/// ([`Station::Dropping`]).
 /// The machine ordered into one continuous sheen route, so the at-rest highlight flows the
 /// way the dots travel — no gap between regions. Each stage is a segment; a dot's phase is its
 /// segment index plus its rank within the segment, over the segment count. The per-segment key
@@ -525,8 +526,7 @@ const SEG_EXIT: u8 = 4; // exits: left → right
 const SEG_QUEUE: u8 = 5; // app queue loop: right → left
 const SHEEN_SEGMENTS: usize = 6;
 
-/// Which sheen segment a live station belongs to. The dropping dot is placed in [`SEG_EXIT`]
-/// directly (it carries no station).
+/// Which sheen segment a live station belongs to.
 fn sheen_segment(station: &Station) -> u8 {
     match station {
         Station::NetworkIn { .. } | Station::SynBacklog { .. } | Station::Accept { .. } => SEG_SYN,
@@ -534,7 +534,7 @@ fn sheen_segment(station: &Station) -> u8 {
         Station::Cpu { .. } => SEG_CPU,
         Station::Io { .. } => SEG_IO,
         Station::AppQueue { .. } => SEG_QUEUE,
-        Station::NetworkOut { .. } => SEG_EXIT,
+        Station::NetworkOut { .. } | Station::Dropping { .. } => SEG_EXIT,
     }
 }
 
@@ -635,6 +635,7 @@ fn station_col(station: &Station) -> Paint {
         Station::Io { .. } => PURPLE,
         // On the way home a request wears its verdict — the station carries it.
         Station::NetworkOut { reply, .. } => outcome_col(reply.outcome()),
+        Station::Dropping { .. } => outcome_col(Outcome::ResponseTimeout),
     }
 }
 
@@ -944,7 +945,12 @@ pub(crate) fn build_frame(obs: &Obs, vs: &ViewState, ps: &mut PaintState) -> Fra
                 }
                 4.5
             }
+            Station::Dropping { .. } => 4.5,
             _ => 5.0,
+        };
+        let opacity = match station {
+            Station::Dropping { p } => 1.0 - p,
+            _ => 1.0,
         };
         dots.push(DotVm {
             key: id,
@@ -954,7 +960,7 @@ pub(crate) fn build_frame(obs: &Obs, vs: &ViewState, ps: &mut PaintState) -> Fra
             parity,
             col,
             r,
-            opacity: 1.0,
+            opacity,
             sheen_phase: 0.0,
         });
         route.push((sheen_segment(&station), x, y));

@@ -946,6 +946,11 @@ const KIND_NONE: u8 = 255;
 /// The station-kind tag of the leg home — the one kind named outside [`station_kind`], because
 /// a received dot lays its own leg when the engine outran the frame.
 const KIND_NETWORK_OUT: u8 = 7;
+/// The abandoned request's fall — named outside [`station_kind`] because a departure reads
+/// it to tell a dot that has already fallen from one that has yet to.
+const KIND_DROPPING: u8 = 8;
+/// How far a request nobody is waiting for drops before it is gone.
+const FALL: f64 = 20.0;
 
 impl Dot {
     fn at(pos: (f64, f64)) -> Self {
@@ -1243,6 +1248,7 @@ impl ViewState {
             dot.itinerary.clear();
             dot.life = match outcome.reply() {
                 Some(reply) => Life::Received(reply),
+                None if dot.kind == KIND_DROPPING => Life::Falling,
                 None => Life::GaveUp,
             };
         }
@@ -1396,6 +1402,22 @@ impl ViewState {
                     let d = p.clamp(0.0, 1.0) * dot.path.total();
                     dot.place(d);
                 }
+                // The give-up, placed the same way: the drop is laid once, from wherever the
+                // dot stands when its client stops waiting, and walked in the leg's own time.
+                Station::Dropping { p } => {
+                    if dot.kind != k {
+                        if !dot.arrived() {
+                            dot.pursue(pursue_dt); // finish the leg it is on
+                            continue;
+                        }
+                        let (x, y) = dot.pos();
+                        dot.steer(vec![(x, y + FALL)]);
+                        dot.io = false;
+                        dot.kind = k;
+                    }
+                    let d = p.clamp(0.0, 1.0) * dot.path.total();
+                    dot.place(d);
+                }
                 // The app queue is the **deadline conveyor**: once on the pipe the dot
                 // is *placed* at its layout position (deterministic — the shed deadline
                 // is known), drifting fork-ward to stand at the timeout gate the instant
@@ -1493,7 +1515,7 @@ impl ViewState {
                         return true;
                     }
                     let (x, y) = dot.pos();
-                    dot.steer(vec![(x, y + 20.0)]);
+                    dot.steer(vec![(x, y + FALL)]);
                     dot.life = Life::Falling;
                     true
                 }
@@ -1569,6 +1591,7 @@ fn station_kind(station: Station) -> u8 {
         Station::Cpu { .. } => 5,
         Station::Io { .. } => 6,
         Station::NetworkOut { .. } => KIND_NETWORK_OUT,
+        Station::Dropping { .. } => KIND_DROPPING,
     }
 }
 
@@ -1621,6 +1644,8 @@ fn anchor(station: Station, layout: &Slots) -> (f64, f64) {
         Station::Cpu { slot, .. } => slot_pos(slot),
         Station::Io { .. } => (PIPE_IO, IOC_Y + IOC_H * 0.5),
         Station::NetworkOut { reply, .. } => layout.exit_end(reply),
+        // A fall has no fixed point: `step` lays it from wherever the dot stands.
+        Station::Dropping { .. } => (SYN_TAIL_X, SYN_Y),
     }
 }
 
@@ -1740,6 +1765,7 @@ fn route_to(from: (f64, f64), station: Station, target: (f64, f64)) -> Vec<(f64,
         }
         Station::Io { .. } => vec![target],
         Station::NetworkOut { reply, .. } => leg_home(from, reply, target),
+        Station::Dropping { .. } => vec![target],
     }
 }
 

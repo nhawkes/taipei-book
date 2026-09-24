@@ -175,7 +175,7 @@ impl Section {
     pub(crate) fn of(station: Station) -> Section {
         match station {
             Station::NetworkIn { .. } => Section::NetworkIn,
-            Station::NetworkOut { .. } => Section::NetworkOut,
+            Station::NetworkOut { .. } | Station::Dropping { .. } => Section::NetworkOut,
             Station::SynBacklog { .. } => Section::SynBacklog,
             Station::Accept { .. } => Section::Accept,
             Station::AppQueue { .. } => Section::AppQueue,
