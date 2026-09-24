@@ -29,7 +29,7 @@ The queue in taipei attempts to get the best of both worlds of reject and queue.
 
 Reject and retry takes a relatively long time. If both machines are geographically near each other they take 1ms-10ms to tell the client to retry. If the client is on a different continent it can take 50ms-200ms. We want to avoid retrying too early and instead wait if it's a temporary spike in traffic.
 
-The decision a request needs to make is whether it will complete faster waiting on this server or by going back to the client to retry. After all, there may be other servers free immediately. Since this duration needs to be checked by the server, it's easier if all requests carry the same queue timeout. If this request landed on this server then we'll assume routing was sensible, and this was the best option at the time. Routing state is global and necessarily always a bit stale. Therefore retrying too quickly will just end up putting the request on the same server. For taipei we hardcode the queue timeout to 100ms. 
+The decision a request needs to make is whether it will complete faster waiting on this server or by going back to the client to retry. After all, there may be other servers free immediately. Since this duration needs to be checked by the server, it's easier if all requests carry the same queue timeout. If this request landed on this server then we'll assume routing was sensible, and this was the best option at the time. Routing state is global and necessarily always a bit stale. Therefore retrying too quickly will just end up putting the request on the same server. For taipei we default the queue timeout to 100ms and its not recommended to change it. 
 
 ```sim
 { "sim": "queue-viz", "width": 960, "height": 520, "stage": "queue", "try": "arrivals" }
