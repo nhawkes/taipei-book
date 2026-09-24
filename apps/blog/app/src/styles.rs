@@ -166,6 +166,11 @@ pub mod styles {
         mobile: { margin: "0 0 1.75rem" },
     }};
 
+    pub const PROJECT_LINKS: Style = css! {{
+        display: "flex",
+        gap: "1.5rem",
+    }};
+
     pub const NAV_LINK: Style = css! {{
         color: Palette::ink,
         font_weight: 650,

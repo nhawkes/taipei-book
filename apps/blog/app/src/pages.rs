@@ -64,9 +64,15 @@ fn shell() -> View {
     view! {
         header css=[styles::HEADER] {
             a css=[styles::NAV_LINK] href=("/") { "taipei" }
-            a css=[styles::NAV_LINK, styles::ICON_LINK] href=("https://github.com/nhawkes/taipei") {
-                @content(icon(icondata_lu::LuGithub))
-                "GitHub"
+            nav css=[styles::PROJECT_LINKS] {
+                a css=[styles::NAV_LINK, styles::ICON_LINK] href=("https://github.com/nhawkes/taipei") {
+                    @content(icon(icondata_lu::LuGithub))
+                    "GitHub"
+                }
+                a css=[styles::NAV_LINK, styles::ICON_LINK] href=("https://crates.io/crates/taipei") {
+                    @content(icon(icondata_lu::LuPackage))
+                    "crates.io"
+                }
             }
         }
     }
