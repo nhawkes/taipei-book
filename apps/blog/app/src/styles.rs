@@ -157,7 +157,7 @@ pub mod styles {
 
     pub const HEADER: Style = css! {{
         display: "flex",
-        align_items: "baseline",
+        align_items: "center",
         justify_content: "space-between",
         margin: "0 0 2.5rem",
         padding: "0 0 0.875rem",
