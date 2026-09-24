@@ -50,4 +50,4 @@ And a full visualization
 { "sim": "queue-viz", "width": 960, "height": 520, "stage": "queue" }
 ```
 
-We'll walk through why each component exists step-by-step.
+We'll walk through why each component exists step-by-step and how we can do better than a manually tuned concurrency limit.

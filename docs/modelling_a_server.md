@@ -2,7 +2,7 @@
 title: Modelling a server
 ---
 
-A typical server will accept tcp connections. The client will send requests over those connections. And the server will respond to these requests.
+A typical server will accept TCP connections. The client will send requests over those connections. And the server will respond to these requests.
 
 Let's take a simple http server. We run GET `/ping` and it responds pong.
 
@@ -48,7 +48,7 @@ std::future::pending::<()>().await
 { "sim": "queue-viz", "width": 960, "height": 520, "stage": "app", "workload": "cpu", "charts": false, "manual": true, "servers": ["good", "never-accept", "accept-hang"] }
 ```
 
-Since this server just does light cpu work, and each request completes on a single thread we'll name this type of server `isolated`. This is the simplest type of server. For this type of server the bottleneck is how quickly we can accept, read and reply to the request. And we can handle many requests.
+Since this server just does light CPU work, and each request completes on a single thread we'll name this type of server `isolated`. This is the simplest type of server. For this type of server the bottleneck is how quickly we can accept, read and reply to the request. And we can handle many requests.
 
 We can start modelling requests as coming in at some frequency with a bit of noise
 
@@ -59,9 +59,9 @@ We can start modelling requests as coming in at some frequency with a bit of noi
 
 One of the problems with servers is that if the rate of incoming requests gets too high (try it), our good server starts acting like our bad servers. Dropping requests by either not accepting or (worse) accepting and then never getting round to replying.
 
-The reason this type of request is simple is that there is no time the CPU is waiting on some IO resource. We have a fixed number of cpus, and we will spawn one thread per cpu (spawning more threads will be slower since the operating system then has to deal with shuffling our m threads onto n cores). And requests always take the same amount of time after we accept them.
+The reason this type of request is simple is that there is no time the CPU is waiting on some IO resource. We have a fixed number of CPUs, and we will spawn one thread per CPU (spawning more threads will be slower since the operating system then has to deal with shuffling our m threads onto n cores). And requests always take the same amount of time after we accept them.
 
-Most webservers or microservices also do some form of IO. For example reading a file or connecting to a database. We can model requests as requiring alternating cpu_time (needs a cpu free) and io_time (must wait, infinitely parallelisable). We'll call this type of server `io_isolated`. Most servers look something like this:
+Most webservers or microservices also do some form of IO. For example reading a file or connecting to a database. We can model requests as requiring alternating cpu_time (needs a CPU free) and io_time (must wait, infinitely parallelisable). We'll call this type of server `io_isolated`. Most servers look something like this:
 
 ```sim
 { "sim": "queue-viz", "width": 960, "height": 520, "stage": "app" }
