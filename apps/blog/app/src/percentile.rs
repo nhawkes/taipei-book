@@ -378,7 +378,7 @@ pub(crate) async fn run(
             div css=[card::CTRLS] {
                 ToggleGroup items=(scales) knob=(scale_knob) picked=>(PercentileMsg::Scale)
                 button css=[bstyles::BASE, bstyles::CTA]
-                    onclick=>(|_| Some(PercentileMsg::Send)) { "▶ send" }
+                    onclick=>(|_| Some(PercentileMsg::Send)) { "send" }
             }
             div css=[styles::SPLIT] {
                 div css=[styles::COLH] { span { "clients" } span { "servers" } }

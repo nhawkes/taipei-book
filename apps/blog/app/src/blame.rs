@@ -17,7 +17,7 @@ use std::time::Duration;
 use idyll::{live_view, Ctx, Rect, Setup, Signal};
 use idyll_styles::styles;
 
-use crate::atoms::button::{Button, ButtonKind};
+use crate::atoms::button::{run_label, Button, ButtonKind};
 use crate::atoms::controls::styles as cstyles;
 use crate::atoms::framed::Framed;
 use crate::atoms::invite::Invite;
@@ -832,11 +832,7 @@ pub(crate) async fn run(
         let running = running.read();
         ctx.computed(move |cx| !running.get(cx)).read()
     };
-    let run_lbl = {
-        let running = running.read();
-        ctx.computed(move |cx| if running.get(cx) { "pause" } else { "run" }.to_string())
-            .read()
-    };
+    let run_lbl = run_label(&ctx, running.read());
     let reset_btn = ctx.constant("reset".to_string());
     let speed = ctx.mutable_signal(raw_from_speed(SPEED));
     let speed_at = speed.read();

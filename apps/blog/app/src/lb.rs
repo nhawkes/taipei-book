@@ -18,7 +18,7 @@ use std::collections::VecDeque;
 use idyll::{live_view, Ctx, MutableVec, Rect, Setup, Shape, Signal};
 use idyll_styles::styles;
 
-use crate::atoms::button::styles as bstyles;
+use crate::atoms::button::{run_label, styles as bstyles};
 use crate::atoms::client_strip::{ink, ink_frame, ClientStrip};
 use crate::atoms::cut::ramp;
 use crate::atoms::lanes::{Ink, LaneTier, WIRES};
@@ -132,14 +132,7 @@ pub(crate) async fn run(
 
     let running = ctx.mutable_signal(false);
     ctx.frames(&running.read(), LbMsg::Tick);
-    let run_label = {
-        let running = running.read();
-        ctx.computed(move |cx| match running.get(cx) {
-            true => "❚❚ Pause".to_string(),
-            false => "▶ Run".to_string(),
-        })
-        .read()
-    };
+    let run_label = run_label(&ctx, running.read());
 
     let qps = ctx.mutable_signal(OPENS_QPS);
     let clients = ctx.mutable_signal(OPENS_CLIENTS as f64);

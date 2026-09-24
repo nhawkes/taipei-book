@@ -147,7 +147,7 @@ pub(crate) async fn run(
                 Tallies aggs=(aggs)
                 div css=[card::CTRLS] {
                     button css=[bstyles::BASE, bstyles::CTA]
-                        onclick=>(|_| Some(FanMsg::Send)) { "▶ send" }
+                        onclick=>(|_| Some(FanMsg::Send)) { "send" }
                 }
                 div css=[wstyles::STAGE] measure=>(|e| e.rect().map(FanMsg::Stage)) {
                     div css=[wstyles::CLIENTS] {

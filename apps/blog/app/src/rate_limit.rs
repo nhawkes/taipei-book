@@ -20,7 +20,7 @@ use std::time::Duration;
 use idyll::{live_view, Ctx, Rect, Setup, Signal};
 use idyll_styles::styles;
 
-use crate::atoms::button::{Button, ButtonKind};
+use crate::atoms::button::{run_label, Button, ButtonKind};
 use crate::atoms::controls::styles as cstyles;
 use crate::atoms::invite::Invite;
 use crate::atoms::latency_table::{Bar, LatencyTable};
@@ -283,14 +283,7 @@ pub(crate) async fn run(
     let mut ledgers: Vec<Latencies> = (0..SERVERS).map(|_| Latencies::default()).collect();
 
     let running = ctx.mutable_signal(false);
-    let run_lbl = {
-        let running = running.read();
-        ctx.computed(move |cx| match running.get(cx) {
-            true => "pause".to_string(),
-            false => "run".to_string(),
-        })
-        .read()
-    };
+    let run_lbl = run_label(&ctx, running.read());
     let reset_btn = ctx.constant("reset".to_string());
     let speed = ctx.mutable_signal(raw_from_speed(SPEED));
     ctx.frames(&running.read(), RateLimitMsg::Tick);

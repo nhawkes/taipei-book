@@ -20,6 +20,12 @@ pub enum ButtonKind {
     Ghost,
 }
 
+/// The sim's `run` button's word: `pause` while it runs.
+pub fn run_label<State, M: 'static>(ctx: &Ctx<State, M>, running: Signal<bool>) -> Signal<String> {
+    ctx.computed(move |cx| if running.get(cx) { "pause" } else { "run" }.to_string())
+        .read()
+}
+
 #[idyll::component]
 pub async fn Button(
     ctx: Ctx<Setup, Never>,

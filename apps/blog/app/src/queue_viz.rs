@@ -16,7 +16,7 @@ use blog_core::PolicyStage;
 use idyll::{live_view, Ctx, Setup, Signal};
 use std::rc::Rc;
 
-use crate::atoms::button::{Button, ButtonKind};
+use crate::atoms::button::{run_label, Button, ButtonKind};
 use crate::atoms::code::{token_style, token_text};
 use crate::atoms::controls::styles as cstyles;
 use crate::atoms::invite::Invite;
@@ -542,11 +542,7 @@ pub(crate) async fn run(
     let ptmo_btn = memo(&ctx, &pr, |p| {
         format!("processing timeout: {}", onoff(p.processing))
     });
-    let run_lbl = {
-        let running = running.read();
-        ctx.computed(move |cx| if running.get(cx) { "pause" } else { "run" }.to_string())
-            .read()
-    };
+    let run_lbl = run_label(&ctx, running.read());
     // The buttons whose word is fixed. `Button` reads a signal either way, so the
     // difference between a label that moves and one that does not stays here.
     let ping_btn = ctx.constant("GET /ping".to_string());
