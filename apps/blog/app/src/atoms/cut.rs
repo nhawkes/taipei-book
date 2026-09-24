@@ -80,16 +80,15 @@ pub async fn CutColumn(
         let at = at.clone();
         ctx.computed(move |cx| ink_of(at.get(cx))).read()
     };
-    ctx
-        .render(live_view! {
-            div css=[styles::COL] style=($ink) {
-                Slider name=(Name::new("", 0)) scale=(CUT_SCALE) at=(at) fmt=(cut_label)
-                    moved=(moved) ?tint=(styles::Cut::ink.value())
-                    ?readout_ink=(styles::Cut::ink.value())
-                Waterfall legs=(legs) axis=(axis)
-            }
-        })
-        .await
+    ctx.render(live_view! {
+        div css=[styles::COL] style=($ink) {
+            Slider name=(Name::new("", 0)) scale=(CUT_SCALE) at=(at) fmt=(cut_label)
+                moved=(moved) ?tint=(styles::Cut::ink.value())
+                ?readout_ink=(styles::Cut::ink.value())
+            Waterfall legs=(legs) axis=(axis)
+        }
+    })
+    .await
 }
 
 #[styles]

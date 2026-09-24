@@ -14,15 +14,14 @@ pub async fn Tallies(
     ctx: Ctx<Setup, Never>,
     aggs: Vec<(&'static str, Signal<String>)>,
 ) -> idyll::Result {
-    ctx
-        .render(live_view! {
-            div css=[styles::TALLIES] {
-                @for (label, value) in (aggs) {
-                    span css=[styles::AGG] { (label) " " span css=[styles::AGGB] { $value } }
-                }
+    ctx.render(live_view! {
+        div css=[styles::TALLIES] {
+            @for (label, value) in (aggs) {
+                span css=[styles::AGG] { (label) " " span css=[styles::AGGB] { $value } }
             }
-        })
-        .await
+        }
+    })
+    .await
 }
 
 #[styles]

@@ -63,28 +63,27 @@ pub async fn LatencyTable(
         ctx.computed(move |cx| bars.get(cx).iter().any(|b| b.pct.is_some()))
             .read()
     };
-    ctx
-        .render(live_view! {
-            div css=[styles::TT] {
-                @for r in $rows [key = r.bar.label.clone()] {
-                    div css=[styles::TROW, total(&$r) => styles::TOTAL] {
-                        div css=[styles::TL] { (label(&$r)) }
-                        div css=[styles::TRACK] {
-                            div css=[styles::RAIL] {}
-                            div css=[styles::BX] style=(box_at(&$r)) {}
-                            div css=[styles::WHISK] style=(whisker(&$r, Edge::P25)) {}
-                            div css=[styles::WHISK] style=(whisker(&$r, Edge::P95)) {}
-                            div css=[styles::MED] style=(median(&$r)) {}
-                        }
-                        div css=[styles::TP50] { (p50(&$r)) }
-                        @if ($shares) {
-                            div css=[styles::TPC] { (pct(&$r)) }
-                        }
+    ctx.render(live_view! {
+        div css=[styles::TT] {
+            @for r in $rows [key = r.bar.label.clone()] {
+                div css=[styles::TROW, total(&$r) => styles::TOTAL] {
+                    div css=[styles::TL] { (label(&$r)) }
+                    div css=[styles::TRACK] {
+                        div css=[styles::RAIL] {}
+                        div css=[styles::BX] style=(box_at(&$r)) {}
+                        div css=[styles::WHISK] style=(whisker(&$r, Edge::P25)) {}
+                        div css=[styles::WHISK] style=(whisker(&$r, Edge::P95)) {}
+                        div css=[styles::MED] style=(median(&$r)) {}
+                    }
+                    div css=[styles::TP50] { (p50(&$r)) }
+                    @if ($shares) {
+                        div css=[styles::TPC] { (pct(&$r)) }
                     }
                 }
             }
-        })
-        .await
+        }
+    })
+    .await
 }
 
 /// Which end of the box a whisker marks.

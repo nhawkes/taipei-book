@@ -196,10 +196,7 @@ pub(crate) async fn run(
                 engine.tick(dt);
 
                 let fleet = engine.fleet();
-                let shed: Vec<bool> = assignment
-                    .iter()
-                    .map(|&s| fleet[s].retried > 0)
-                    .collect();
+                let shed: Vec<bool> = assignment.iter().map(|&s| fleet[s].retried > 0).collect();
                 if shed != client_shed {
                     client_shed = shed;
                     relaid = true;

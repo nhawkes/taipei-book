@@ -88,14 +88,13 @@ async fn Metric(
     let count = v.clone();
     let text = ctx.computed(move |cx| group(count.get(cx))).read();
     let zero = ctx.computed(move |cx| v.get(cx) == 0).read();
-    ctx
-        .render(live_view! {
-            div css=[styles::M] {
-                span css=[styles::ML] { (label) }
-                span css=[styles::MV, hue, $zero => styles::ZERO] { $text }
-            }
-        })
-        .await
+    ctx.render(live_view! {
+        div css=[styles::M] {
+            span css=[styles::ML] { (label) }
+            span css=[styles::MV, hue, $zero => styles::ZERO] { $text }
+        }
+    })
+    .await
 }
 
 #[idyll::component]

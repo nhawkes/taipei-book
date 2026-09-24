@@ -179,41 +179,40 @@ pub async fn TenantStage(
         .collect();
     let placed_stage = measured.try_contra_map(|e: Event| e.rect().map(Measured::Stage));
 
-    ctx
-        .render(live_view! {
-            div css=[wstyles::STAGE] measure=(placed_stage) {
-                div css=[wstyles::CLIENTS] {
-                    @for (name, dot, placed) in (dots) {
-                        div css=[wstyles::CNODE] {
-                            span css=[wstyles::DOT] style=(dot) measure=(placed) {}
-                            span css=[wstyles::CL] { (name) }
-                        }
-                    }
-                }
-                div css=[wstyles::SERVERS, styles::STACK] {
-                    @for (name, counts, idle, ink, tenants, placed) in (boxes) {
-                        div measure=(placed) {
-                            ServerBox name=(name) counts=(counts) idle=(idle) ?ink=(ink)
-                                ?tenants=(tenants)
-                        }
-                    }
-                }
-                svg css=[wstyles::WIRES] {
-                    @for d in (bare) {
-                        path css=[wstyles::WIRE_IDLE] d=($d) {}
-                    }
-                    @for (d, ink) in (replies) {
-                        path css=[wstyles::RESPONSES] d=($d)
-                            pathLength=(WIRE_LEN.to_string()) style=($ink) {}
-                    }
-                    @for (d, shed, dashes) in (outbound) {
-                        path css=[wstyles::REQUESTS, $shed => wstyles::REQUESTS_SHED]
-                            d=($d) pathLength=(WIRE_LEN.to_string()) style=($dashes) {}
+    ctx.render(live_view! {
+        div css=[wstyles::STAGE] measure=(placed_stage) {
+            div css=[wstyles::CLIENTS] {
+                @for (name, dot, placed) in (dots) {
+                    div css=[wstyles::CNODE] {
+                        span css=[wstyles::DOT] style=(dot) measure=(placed) {}
+                        span css=[wstyles::CL] { (name) }
                     }
                 }
             }
-        })
-        .await
+            div css=[wstyles::SERVERS, styles::STACK] {
+                @for (name, counts, idle, ink, tenants, placed) in (boxes) {
+                    div measure=(placed) {
+                        ServerBox name=(name) counts=(counts) idle=(idle) ?ink=(ink)
+                            ?tenants=(tenants)
+                    }
+                }
+            }
+            svg css=[wstyles::WIRES] {
+                @for d in (bare) {
+                    path css=[wstyles::WIRE_IDLE] d=($d) {}
+                }
+                @for (d, ink) in (replies) {
+                    path css=[wstyles::RESPONSES] d=($d)
+                        pathLength=(WIRE_LEN.to_string()) style=($ink) {}
+                }
+                @for (d, shed, dashes) in (outbound) {
+                    path css=[wstyles::REQUESTS, $shed => wstyles::REQUESTS_SHED]
+                        d=($d) pathLength=(WIRE_LEN.to_string()) style=($dashes) {}
+                }
+            }
+        }
+    })
+    .await
 }
 
 #[styles]

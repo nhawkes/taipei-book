@@ -33,7 +33,8 @@ pub async fn Switch(
             }
             span css=[styles::LABEL, $is_on => styles::PICKED] { (on) }
         }
-    }).await
+    })
+    .await
 }
 
 #[styles]

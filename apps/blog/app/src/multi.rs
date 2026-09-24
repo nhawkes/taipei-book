@@ -2277,10 +2277,7 @@ mod tests {
         run_for(&mut e, 2.0);
         assert_eq!(
             benched,
-            e.fleet()[4..]
-                .iter()
-                .map(|f| f.success)
-                .collect::<Vec<_>>(),
+            e.fleet()[4..].iter().map(|f| f.success).collect::<Vec<_>>(),
             "a benched server's tally has stopped",
         );
         assert!(
@@ -2883,9 +2880,7 @@ mod tests {
             "a busy server has cores working"
         );
         assert!(
-            fleet
-                .iter()
-                .any(|f| f.req > 0 || f.retried > 0),
+            fleet.iter().any(|f| f.req > 0 || f.retried > 0),
             "an overloaded server has queued or shed work"
         );
     }

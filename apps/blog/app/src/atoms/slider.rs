@@ -142,22 +142,21 @@ pub async fn Slider(
     // A field mid-edit is not yet a number, and a move that isn't one is not a move.
     let moved = moved.try_contra_map(|e: Event| e.target_value?.parse().ok());
 
-    ctx
-        .render(live_view! {
-            label css=[styles::RANGE] {
-                span css=[styles::NAME] style=(format!("min-width:{width}px")) { (text) }
-                span css=[styles::TRACK] {
-                    span css=[styles::RAIL] {}
-                    span css=[styles::FILL] style=($fill) {}
-                    input css=[styles::INPUT, $driven => styles::DRIVEN] type=("range")
-                        min=(min.to_string()) max=(max.to_string()) step=(step.to_string())
-                        aria_label=(text) aria_valuetext=($readout)
-                        value=($position) disabled[$locked] style=(knob.clone()) oninput=(moved) {}
-                }
-                span css=[styles::VALUE] style=(pill) { $readout }
+    ctx.render(live_view! {
+        label css=[styles::RANGE] {
+            span css=[styles::NAME] style=(format!("min-width:{width}px")) { (text) }
+            span css=[styles::TRACK] {
+                span css=[styles::RAIL] {}
+                span css=[styles::FILL] style=($fill) {}
+                input css=[styles::INPUT, $driven => styles::DRIVEN] type=("range")
+                    min=(min.to_string()) max=(max.to_string()) step=(step.to_string())
+                    aria_label=(text) aria_valuetext=($readout)
+                    value=($position) disabled[$locked] style=(knob.clone()) oninput=(moved) {}
             }
-        })
-        .await
+            span css=[styles::VALUE] style=(pill) { $readout }
+        }
+    })
+    .await
 }
 
 #[styles]

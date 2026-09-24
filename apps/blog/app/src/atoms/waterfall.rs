@@ -102,38 +102,37 @@ pub async fn Waterfall(
         })
         .read()
     };
-    ctx
-        .render(live_view! {
-            div css=[styles::WF] {
-                @for r in $rows [key = r.leg.label.clone()] {
-                    div css=[styles::WROW] {
-                        span css=[styles::WL] { (label(&$r)) }
-                        div css=[styles::WTRACK] {
-                            div css=[styles::WRAIL] {}
-                            div css=[styles::WSEG] style=(segment(&$r)) {}
-                            div css=[styles::WGIVE] style=(whisker(&$r)) {}
-                        }
-                        span css=[styles::WV] {
-                            span css=[styles::WN] { (reading(&$r)) }
-                            span css=[styles::WD] style=(gain(&$r)) { (against(&$r)) }
-                        }
-                    }
-                }
-                div css=[styles::WROW, styles::TOTAL] {
-                    span css=[styles::WL] { "total" }
+    ctx.render(live_view! {
+        div css=[styles::WF] {
+            @for r in $rows [key = r.leg.label.clone()] {
+                div css=[styles::WROW] {
+                    span css=[styles::WL] { (label(&$r)) }
                     div css=[styles::WTRACK] {
                         div css=[styles::WRAIL] {}
-                        div css=[styles::WSTACK] style=($trip_bar) {
-                            @for r in $rows [key = r.leg.label.clone()] {
-                                div css=[styles::WPART] style=(share(&$r)) {}
-                            }
-                        }
+                        div css=[styles::WSEG] style=(segment(&$r)) {}
+                        div css=[styles::WGIVE] style=(whisker(&$r)) {}
                     }
-                    span css=[styles::WV] { (total_reading(&$trip)) }
+                    span css=[styles::WV] {
+                        span css=[styles::WN] { (reading(&$r)) }
+                        span css=[styles::WD] style=(gain(&$r)) { (against(&$r)) }
+                    }
                 }
             }
-        })
-        .await
+            div css=[styles::WROW, styles::TOTAL] {
+                span css=[styles::WL] { "total" }
+                div css=[styles::WTRACK] {
+                    div css=[styles::WRAIL] {}
+                    div css=[styles::WSTACK] style=($trip_bar) {
+                        @for r in $rows [key = r.leg.label.clone()] {
+                            div css=[styles::WPART] style=(share(&$r)) {}
+                        }
+                    }
+                }
+                span css=[styles::WV] { (total_reading(&$trip)) }
+            }
+        }
+    })
+    .await
 }
 
 fn label(r: &Placed) -> String {

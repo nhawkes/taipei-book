@@ -150,11 +150,7 @@ impl Arm {
         self.engine.tick(dt * speed);
 
         let fleet = self.engine.fleet();
-        let busy: usize = fleet
-            .iter()
-            .take(self.rotation)
-            .map(|s| s.busy)
-            .sum();
+        let busy: usize = fleet.iter().take(self.rotation).map(|s| s.busy).sum();
         let believed = self.engine.believed();
         let want = self.scaler.frame(
             dt,

@@ -28,37 +28,35 @@ pub async fn page(ctx: Ctx<Setup, Never>, seed: PageSeed) -> idyll::Result {
         PageFragRoute::Index { chapters } => index(chapters),
         PageFragRoute::NotFound {} => not_found(),
     };
-    ctx
-        .render_content(view! {
-            div css=[styles::PAGE] {
-                @content(shell())
-                main {
-                    @content(content)
-                }
+    ctx.render_content(view! {
+        div css=[styles::PAGE] {
+            @content(shell())
+            main {
+                @content(content)
             }
-        })
-        .await
+        }
+    })
+    .await
 }
 
 /// The document-head content. The `<title>` is a contract field on the page node —
 /// the host writes it into the envelope, not the view.
 pub async fn head(ctx: Ctx<Setup, Never>, _seed: PageSeed) -> idyll::Result {
     let description = "Taipei is a library that integrates with tower to enable writing servers that behave well under stress without tuning.";
-    ctx
-        .render_content(view! {
-            meta charset=("utf-8")
-            meta name=("viewport") content=("width=device-width, initial-scale=1")
-            meta name=("description") content=(description)
-            meta property=("og:description") content=(description)
-            meta property=("og:image") content=("https://taipei-book.pages.dev/static/og.png")
-            meta name=("twitter:card") content=("summary_large_image")
-            link rel=("icon") href=("/static/favicon.svg")
-            // The faces the styles name. Without these the whole type scale falls back and every
-            // size, weight and measure chosen for them is applied to something else. Served locally
-            // from `blog-fonts` (`display:swap` in each `@font-face`), not a font CDN.
-            link rel=("stylesheet") href=("/static/fonts.css")
-        })
-        .await
+    ctx.render_content(view! {
+        meta charset=("utf-8")
+        meta name=("viewport") content=("width=device-width, initial-scale=1")
+        meta name=("description") content=(description)
+        meta property=("og:description") content=(description)
+        meta property=("og:image") content=("https://taipei-book.pages.dev/static/og.png")
+        meta name=("twitter:card") content=("summary_large_image")
+        link rel=("icon") href=("/static/favicon.svg")
+        // The faces the styles name. Without these the whole type scale falls back and every
+        // size, weight and measure chosen for them is applied to something else. Served locally
+        // from `blog-fonts` (`display:swap` in each `@font-face`), not a font CDN.
+        link rel=("stylesheet") href=("/static/fonts.css")
+    })
+    .await
 }
 
 /// The shared page chrome, beside the styles it wears.
