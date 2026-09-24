@@ -13,7 +13,7 @@ use std::rc::Rc;
 use idyll::{live_view, Ctx, Setup, Signal};
 use idyll_styles::styles;
 
-use crate::atoms::button::{Button, ButtonKind};
+use crate::atoms::button::{run_label, Button, ButtonKind};
 use crate::atoms::invite::Invite;
 use crate::atoms::server_box::{server_name, ServerBox};
 use crate::atoms::slider::{fmt_qps, Name, Scale, Slider};
@@ -30,7 +30,8 @@ const ENGINE_STEP_MS: f64 = 1000.0 / 30.0;
 const MAX_CATCH_UP: f64 = 3.0;
 
 /// The cluster sim's messages: a frame tick (its ms delta), the stage's measured width, and
-/// the zoom — drill into a server, climb back to the fleet, or move the focused server's load.
+/// the zoom — drill into a server, climb back to the fleet, or move the focused server's load —
+/// and the run button.
 #[derive(Debug)]
 pub enum FleetMsg {
     Tick(f64),
@@ -41,6 +42,7 @@ pub enum FleetMsg {
     /// Release the still. Clicking the machine only ever starts it — climbing out to the
     /// fleet is the [`Invite`]d button's job, so a stray click cannot lose the reader's place.
     Start,
+    Toggle,
 }
 
 /// The focused server's frame producer: which engine it draws, and the motion/paint state its
@@ -137,6 +139,7 @@ pub(crate) async fn run(
     };
 
     let up_lbl = ctx.constant("Overview".to_string());
+    let run_lbl = run_label(&ctx, running.read());
 
     let mut ctx = ctx.render(live_view! {
         div css=[crate::atoms::sim_card::styles::CARD, crate::atoms::sim_card::styles::SIM] {
@@ -148,9 +151,6 @@ pub(crate) async fn run(
                     span css=[styles::WHO] { $focused_name }
                 }
                 MachineView frame=(frame) layout=(layout) charts_on=(false) armed=(armed) on_click=>(|_| FleetMsg::Start)
-                div css=[styles::CTRL] {
-                    Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(1, 400, 1)) at=(qps_at) fmt=(fmt_qps) moved=>(FleetMsg::Qps)
-                }
             } else {
                 div css=[styles::FLEET] {
                     @for (k, name, live, idle) in (boxes) {
@@ -158,6 +158,12 @@ pub(crate) async fn run(
                             ServerBox name=(name) counts=(live) idle=(idle)
                         }
                     }
+                }
+            }
+            div css=[styles::CTRL] {
+                Button kind=(ButtonKind::Cta) label=(run_lbl) pressed=>(|_| FleetMsg::Toggle)
+                @if ($zoomed) {
+                    Slider name=(Name::new("arrivals", 52)) scale=(Scale::new(1, 400, 1)) at=(qps_at) fmt=(fmt_qps) moved=>(FleetMsg::Qps)
                 }
             }
         }
@@ -213,6 +219,7 @@ pub(crate) async fn run(
                 focused = None;
             }
             FleetMsg::Start => running.set(&turn, true),
+            FleetMsg::Toggle => running.update(&turn, |r| *r = !*r),
             FleetMsg::Qps(v) => {
                 if let Some(f) = &focused {
                     cluster.set_qps(f.server, v);
@@ -266,6 +273,8 @@ pub mod styles {
     }};
     pub const CTRL: Style = css! {{
         display: "flex",
+        align_items: "center",
+        gap: "18px",
         margin: "12px 4px 2px",
     }};
 }
