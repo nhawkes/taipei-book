@@ -66,6 +66,10 @@ fn shell() -> View {
     view! {
         header css=[styles::HEADER] {
             a css=[styles::NAV_LINK] href=("/") { "taipei" }
+            a css=[styles::NAV_LINK, styles::ICON_LINK] href=("https://github.com/nhawkes/taipei") {
+                @content(icon(icondata_lu::LuGithub))
+                "GitHub"
+            }
         }
     }
 }
@@ -110,13 +114,13 @@ fn chapter_link(chapter: ChapterFrag, toward: Toward) -> View {
     let title = chapter.title;
     match toward {
         Toward::Previous => view! {
-            a css=[styles::NAV_LINK, styles::CHAPTER_LINK] href=(href) {
+            a css=[styles::NAV_LINK, styles::ICON_LINK] href=(href) {
                 @content(icon(icondata_lu::LuArrowLeft))
                 (title)
             }
         },
         Toward::Next => view! {
-            a css=[styles::NAV_LINK, styles::CHAPTER_LINK, styles::NEXT_CHAPTER] href=(href) {
+            a css=[styles::NAV_LINK, styles::ICON_LINK, styles::NEXT_CHAPTER] href=(href) {
                 (title)
                 @content(icon(icondata_lu::LuArrowRight))
             }

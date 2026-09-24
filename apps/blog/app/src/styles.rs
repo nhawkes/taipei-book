@@ -184,7 +184,7 @@ pub mod styles {
         border_color: Palette::line,
     }};
 
-    pub const CHAPTER_LINK: Style = css! {{
+    pub const ICON_LINK: Style = css! {{
         display: "inline-flex",
         align_items: "center",
         gap: "0.5em",
