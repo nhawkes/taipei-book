@@ -548,8 +548,9 @@ pub(crate) async fn run(
     let ping_btn = ctx.constant("GET /ping".to_string());
     let reset_btn = ctx.constant("reset".to_string());
     let inject_btn = ctx.constant("send a request".to_string());
-    // The stage is armed while it holds the still.
-    let armed = memo(&ctx, &running.read(), |&r| !r);
+    // The stage is armed while it holds the still. A manual stage is released by its
+    // `GET /ping`, never by a click on the picture.
+    let armed = memo(&ctx, &running.read(), move |&r| !r && !manual);
 
     let pg = ping.read();
     let ping_lbl = memo(&ctx, &pg, ping_text);
@@ -653,7 +654,9 @@ pub(crate) async fn run(
                 div css=[cstyles::ROW] {
                     span css=[cstyles::GRP] { "simulation" }
                     div css=[cstyles::ROW_BODY] {
-                        Button kind=(ButtonKind::Cta) label=(run_lbl) pressed=>(|_| SimMsg::Toggle)
+                        @if (!manual) {
+                            Button kind=(ButtonKind::Cta) label=(run_lbl) pressed=>(|_| SimMsg::Toggle)
+                        }
                         Invite when=(invite_speed) hint=("Increase speed to see rejections") {
                             Slider name=(Name::new("speed", 44)) scale=(Scale::new(0, 100, 1)) at=(speed_at) fmt=(fmt_speed) moved=>(SimMsg::Speed)
                         }
@@ -771,6 +774,9 @@ pub(crate) async fn run(
                 }
                 vs.step(eng.obs());
                 frame.set(&turn, Rc::new(build_frame(eng.obs(), vs, ps)));
+                if manual && eng.obs().live.is_empty() {
+                    running.set(&turn, false);
+                }
             }
             SimMsg::Toggle => running.update(&turn, |r| *r = !*r),
             SimMsg::Start => running.set(&turn, true),
