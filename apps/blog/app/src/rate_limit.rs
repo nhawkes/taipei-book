@@ -526,7 +526,7 @@ pub(crate) async fn run(
                                 div css=[styles::RAIL] {
                                     Slider name=(name) scale=(QPS_SCALE) at=(at_qps) fmt=(fmt_qps)
                                         moved=>(move |v| RateLimitMsg::Qps(k, v)) ?tint=(tint)
-                                    Slider name=(Name::new("cost", 40)) scale=(COST_SCALE) at=(at_cost)
+                                    Slider name=(Name::new("cost", 56)) scale=(COST_SCALE) at=(at_cost)
                                         fmt=(fmt_ms) moved=>(move |v| RateLimitMsg::Cost(k, v)) ?tint=(tint)
                                 }
                             }
