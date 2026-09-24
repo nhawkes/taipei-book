@@ -57,7 +57,7 @@ pub const DEFAULT_QPS: f64 = 30.0;
 pub const CORES: usize = 8;
 pub const ADMISSION_FRACTION: f64 = 0.5;
 pub const ADMISSION_LIMIT: usize = (CORES as f64 * ADMISSION_FRACTION) as usize;
-/// Mirrors `taipei::queue::DEFAULT_QUEUE_TIMEOUT`, in virtual milliseconds.
+/// Mirrors the queue timeout `taipei::queue::QueueLayer::new()` uses, in virtual milliseconds.
 pub const TIMEOUT_MS: f64 = 100.0;
 /// The accept burst: virtual ms of CPU a worker spends on a freshly-`spawn`ed
 /// connection before the request reaches the app's admission queue. Tagged
@@ -2511,8 +2511,9 @@ impl SimEngine {
         self.rebuild();
     }
 
-    /// Toggle the queue's shed deadline. The deadline is a `QueueLayer::new(timeout)` in
-    /// the shown source, so a change rebuilds with the new value and swaps it in.
+    /// Toggle the queue's shed deadline. The deadline is a
+    /// `QueueLayer::with_custom_queue_timeout(timeout)` in the shown source, so a change
+    /// rebuilds with the new value and swaps it in.
     pub fn set_queue_timeout(&mut self, on: bool) {
         self.queue_timeout_on = on;
         self.rebuild();

@@ -3244,9 +3244,9 @@ dependencies = [
 
 [[package]]
 name = "taipei"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90954e41f182a1df82613fe6816573c64a42febb4160eff7133e61183d1d82fc"
+checksum = "cd33a44826de10a0c54d60dc835ceaf651f18365e4bdb117327deb205ad9be86"
 dependencies = [
  "bon",
  "delegate",

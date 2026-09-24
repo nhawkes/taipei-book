@@ -22,7 +22,7 @@ serde = { workspace = true }
 # The queue visualiser runs the REAL taipei middleware inside the island: a tokio
 # current-thread runtime pumped per frame against a virtual clock. Deliberately NOT the
 # workspace tokio (features = ["full"] pulls net/signal, which don't build on wasm).
-taipei = { version = "0.1", default-features = false }
+taipei = { version = "0.2", default-features = false }
 taipei-macros = { path = "../../../crates/taipei-macros" }
 tokio = { version = "1", default-features = false, features = ["rt", "sync", "macros", "time", "test-util"] }
 tokio-util = { version = "0.7", features = ["rt"] }

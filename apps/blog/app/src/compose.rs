@@ -88,7 +88,7 @@ pub(crate) fn queue_naive(
     let inner = ServiceBuilder::new()
         .layer(DynamicConcurrencyLimitLayer::new(limit))
         .service(my_service);
-    QueueLayer::new(queue_timeout).build(inner, handle)
+    QueueLayer::with_custom_queue_timeout(queue_timeout).build(inner, handle)
 }
 
 /// CPU backpressure behind the queue — the gate taipei recommends.
@@ -106,7 +106,7 @@ pub(crate) fn queue(
     let inner = ServiceBuilder::new()
         .layer(CpuBackpressureLayer::new(instr))
         .service(my_service);
-    QueueLayer::new(queue_timeout).build(inner, handle)
+    QueueLayer::with_custom_queue_timeout(queue_timeout).build(inner, handle)
 }
 
 /// The recommended gate with tenant accounting under it. The reporter sits **below the queue and
@@ -129,7 +129,7 @@ pub(crate) fn queue_tenant<R: Report + Send + 'static>(
         .layer(reporter)
         .layer(CpuBackpressureLayer::new(instr))
         .service(my_service);
-    QueueLayer::new(queue_timeout).build(inner, handle)
+    QueueLayer::with_custom_queue_timeout(queue_timeout).build(inner, handle)
 }
 
 /// The tenanted gate, with the fleet's rate limit in front of it. The one composition where a
@@ -159,7 +159,7 @@ where
         .layer(reporter)
         .layer(CpuBackpressureLayer::new(instr))
         .service(my_service);
-    let (queue, worker) = QueueLayer::new(queue_timeout).build(inner, handle);
+    let (queue, worker) = QueueLayer::with_custom_queue_timeout(queue_timeout).build(inner, handle);
     (EnforcerLayer::new(limits).layer(queue), worker)
 }
 
@@ -181,7 +181,7 @@ pub(crate) fn queue_os_cpu(
     let inner = ServiceBuilder::new()
         .layer(DynamicConcurrencyLimitLayer::from_handle(limit))
         .service(my_service);
-    QueueLayer::new(queue_timeout).build(inner, handle)
+    QueueLayer::with_custom_queue_timeout(queue_timeout).build(inner, handle)
 }
 
 /// The captured source of the composition [`crate::engine`] runs for a stage — the exact
