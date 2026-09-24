@@ -2,7 +2,7 @@
 title: Rate limiting and auto scaling
 ---
 
-We've propagated backpressure so far. Internal overloads in the service turn into queue timeouts. Queueing and queue timeouts feed into load balancing to turn local overloads into global overloads. Propagation should be sub-second, if the service remains overloaded for 1-10 seconds then we truly have more requests than capacity, globally. 
+We've propagated backpressure so far. Internal overloads in the service turn into queue timeouts. Queuing and queue timeouts feed into load balancing to turn local overloads into global overloads. Propagation should be sub-second, if the service remains overloaded for 1-10 seconds then we truly have more requests than capacity, globally. 
 
 If your service is hit with more requests than it can handle there are really only two options:
 - Autoscale
