@@ -67,7 +67,7 @@ Most webservers or microservices also do some form of IO. For example reading a 
 { "sim": "queue-viz", "width": 960, "height": 520, "stage": "app" }
 ```
 
-Unlike with `isolated`, `io_isolated` can have different processing times. And it comes down to when io completes, how fast can we find a core to land on.
+Unlike with `isolated`, `io_isolated` can have different processing times. And it comes down to when IO completes, how fast can we find a core to land on.
 
 One way to make sure requests are successful is simply to have more servers than are needed to serve the total amount of requests. The simplest case of this is having one big server and not too many requests. The issues with this are:
 - If you unexpectedly get more requests, *all* requests fail (not just the excess)
