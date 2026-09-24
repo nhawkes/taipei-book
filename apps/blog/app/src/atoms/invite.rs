@@ -30,16 +30,17 @@ pub async fn Invite(
     let tight = ctx.computed(move |cx| when.get(cx) && hug).read();
     let hugging = ctx.constant(hug);
     let tag_hugging = hugging.clone();
-    ctx
-        .render(live_view! {
-            div css=[styles::WRAP, $loose => styles::INVITE, $tight => styles::INVITE_HUG, $hugging => styles::HUG] {
-                @if ($asking) {
-                    span css=[styles::ASK, $tag_hugging => styles::ASK_BESIDE] { (hint) }
-                }
+    ctx.render(live_view! {
+        div css=[styles::WRAP, $hugging => styles::HUG] {
+            @if ($asking) {
+                span css=[styles::ASK, $tag_hugging => styles::ASK_BESIDE] { (hint) }
+            }
+            span css=[styles::CONTROL, $loose => styles::INVITE, $tight => styles::INVITE_HUG] {
                 (children)
             }
-        })
-        .await
+        }
+    })
+    .await
 }
 
 #[idyll_styles::styles]
@@ -55,7 +56,7 @@ pub mod styles {
         /// removed the moment they do.
         pub Nudge {
             from { box_shadow: "0 0 0 0 #77935a4d" },
-            "70%" { box_shadow: "0 0 0 12px #77935a00" },
+            "70%" { box_shadow: "0 0 0 20px #77935a00" },
             to { box_shadow: "0 0 0 0 #77935a00" }
         }
 
@@ -73,10 +74,8 @@ pub mod styles {
         }
     }
 
-    /// The wrapper the affordance is drawn on: a flex box that fills the room its control
-    /// had, and the positioning context the [`ASK`](ASK) tag hangs from. Layout-neutral at
-    /// rest — [`INVITE`](INVITE)'s padding is offset by a negative margin, so turning the
-    /// glow on and off never shifts the control.
+    /// The wrapper the affordance hangs from: a flex box that fills the room its control
+    /// had, and the positioning context the [`ASK`](ASK) tag hangs from.
     /// Where there is room above the control, the tag hangs over it and this is only the box
     /// it hangs from. Where there is not — a control with something directly above and below
     /// it — the tag takes its own line instead, which costs the reflow when the invitation is
@@ -88,15 +87,24 @@ pub mod styles {
         flex_grow: 1,
         flex_shrink: 1,
         flex_basis: "auto",
-        max_width(680px): { display: "grid", min_width: "0" },
+        max_width(680px): { display: "grid", row_gap: "14px", min_width: "0" },
     }};
 
-    /// The invited control — a soft ground and the pulsing ring around it.
+    /// The control's own box, which wears the glow and the ring — never the tag, so the
+    /// ring hugs what it asks the reader to press.
+    pub const CONTROL: Style = css! {{
+        display: "flex",
+        align_items: "center",
+        flex_grow: 1,
+        min_width: "0",
+    }};
+
+    /// The invited control — a soft ground and the pulsing ring around it. The ground is an
+    /// outline, which takes no room, so turning the glow on and off never shifts the control.
     pub const INVITE: Style = css! {{
         border_radius: "14px",
-        padding: "8px 12px",
-        margin: "-8px -4px",
         background: "#edf3e2",
+        outline: "8px solid #edf3e2",
         animation: Nudge "2.2s ease-out infinite",
     }};
 
@@ -112,11 +120,11 @@ pub mod styles {
         font_family: Face::sans,
         right: "0",
         width: "max-content",
-        top: "-15px",
+        bottom: "100%",
         // Narrow enough and there is no room across the picture either: the tag takes its own
         // line above the control, where the width is the line's to give rather than the
         // sentence's to take, and nothing it could cover is under it.
-        max_width(680px): { position: "static", width: "auto", margin_bottom: "6px", justify_self: "end" },
+        max_width(680px): { position: "static", width: "auto", justify_self: "end" },
         padding: "4px 11px",
         border_radius: Radius::pill,
         background: Palette::wash,
@@ -143,8 +151,10 @@ pub mod styles {
 
     pub const ASK_BESIDE: Style = css! {{
         right: "auto",
-        left: "calc(100% + 10px)",
-        top: "50%",
-        margin_top: "-12px",
+        left: "100%",
+        top: "0",
+        bottom: "0",
+        height: "fit-content",
+        margin: "auto 0 auto 10px",
     }};
 }
