@@ -771,12 +771,12 @@ pub(crate) async fn run(
                             ping_id = None;
                         }
                     }
+                    if manual && eng.obs().live.is_empty() {
+                        running.set(&turn, false);
+                    }
                 }
                 vs.step(eng.obs());
                 frame.set(&turn, Rc::new(build_frame(eng.obs(), vs, ps)));
-                if manual && eng.obs().live.is_empty() {
-                    running.set(&turn, false);
-                }
             }
             SimMsg::Toggle => running.update(&turn, |r| *r = !*r),
             SimMsg::Start => running.set(&turn, true),
