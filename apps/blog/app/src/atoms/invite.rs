@@ -88,7 +88,7 @@ pub mod styles {
         flex_grow: 1,
         flex_shrink: 1,
         flex_basis: "auto",
-        max_width(680px): { flex_direction: "column", align_items: "flex-end", min_width: "0" },
+        max_width(680px): { display: "grid", min_width: "0" },
     }};
 
     /// The invited control — a soft ground and the pulsing ring around it.
@@ -116,7 +116,7 @@ pub mod styles {
         // Narrow enough and there is no room across the picture either: the tag takes its own
         // line above the control, where the width is the line's to give rather than the
         // sentence's to take, and nothing it could cover is under it.
-        max_width(680px): { position: "static", width: "auto", margin_bottom: "6px" },
+        max_width(680px): { position: "static", width: "auto", margin_bottom: "6px", justify_self: "end" },
         padding: "4px 11px",
         border_radius: Radius::pill,
         background: Palette::wash,
@@ -136,7 +136,10 @@ pub mod styles {
         animation: NudgeTight "2.2s ease-out infinite",
     }};
 
-    pub const HUG: Style = css! {{ flex_grow: 0 }};
+    pub const HUG: Style = css! {{
+        flex_grow: 0,
+        max_width(680px): { justify_items: "end" },
+    }};
 
     pub const ASK_BESIDE: Style = css! {{
         right: "auto",

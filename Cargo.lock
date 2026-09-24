@@ -1104,7 +1104,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -1779,9 +1779,9 @@ dependencies = [
 
 [[package]]
 name = "idyll-styles"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d883c1cbf7721e647f7aaf939f5c9088609463f6113fc40f77b52150308a66d8"
+checksum = "9cee7a6de31a185bd2a14d3f49aba4184f89db1a60cfb205c96dda914c7ec271"
 dependencies = [
  "anyhow",
  "idyll",
@@ -1795,9 +1795,9 @@ dependencies = [
 
 [[package]]
 name = "idyll-styles-parse"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb8ebc6f2ce5cc5dd1d76fa1987086b861cc37e2a6627211e7207f9de713ac5f"
+checksum = "2a4815a151b78afe29a17085f4cb3dae8d414b80504cab81fcd1d39b9dd670c1"
 dependencies = [
  "proc-macro2",
  "syn 2.0.117",
@@ -2911,7 +2911,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3282,7 +3282,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4353,7 +4353,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
