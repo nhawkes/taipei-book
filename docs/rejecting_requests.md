@@ -2,11 +2,15 @@
 title: Rejecting requests
 ---
 
-Traffic is spiky. If a server gets hit with 1 million requests, the first thing it needs to do for the global service to successfully handle these requests is for the individual server to reject them so they can be retried.
+Let's imagine we have a service that is one of a few similar machines serving a website. Say, people go to https://whats-the-weather.example.com/, that request gets forwarded through some hosting provider like AWS or GCP and on to any one of your machines, that machine queries some database for the weather and returns the forecast.
 
-If you're choosing to autoscale rather than outright reject, then that still needs rejection. Autoscaling takes some time and so requests need to be rejected so they can be automatically retried once the new capacity is online.
+Traffic is spiky for most servers. There will be times when everyone is asleep. And there will be times everyone wants to know the weather (or whatever your server does). Whilst we would hope during spikes the provider or routing equally distributes load (covered later), let's take an extreme example where, for whatever reason, an individual server gets hit with 1 million requests. The first thing it needs to do for the global service to successfully handle these requests is for the individual server to reject them so they can be retried. 
 
-It is not safe to reject and retry a request once execution has started. Firstly the execution might have side-effects (you don't want to retry your database delete after execution). Secondly any CPU time that happened before rejection is now wasted.
+If https://whats-the-weather.example.com/ is being called from something like an App there should probably be some logic in the App to retry on these sorts of retriable failures. If https://whats-the-weather.example.com/ is being called by another server (maybe the server for https://whats-the-news.example.com/) then that server should do retries as appropriate. If it's a real user the load balancer should retry. Needing a retry doesn't mean the user manually refreshing the page.
+
+Rejection is still needed with serverless or any other kind of infinite scaling mechanism. If you're choosing to autoscale rather than outright reject, then that still needs rejection at a server level. Autoscaling takes some time and does not help if all the requests are stuck on one machine, therefore requests need to be rejected at a machine level so they can be automatically retried somewhere else, hopefully once the new capacity is online.
+
+It is not safe to reject and retry a request in general once execution has started. Firstly the execution might have side-effects (you don't want to retry your database delete after execution). Secondly any CPU time that happened before rejection is now wasted.
 
 The worst type of reject is a TCP drop. In this scenario the client simply doesn't get any response back. It has no idea if the request executed or not, and can't safely retry.
 
@@ -18,7 +22,7 @@ A common but limited approach is to use a fixed concurrency limit for the amount
            { "display": "Queue",  "stage": "wait" }] }
 ```
 
-Remember unlike other failures, early rejects are perfectly safe to retry. They cost very little since the request hasn't started. Clients are expected to respond by immediately retrying on another server after getting more up-to-date load balancing behaviour. They are not an overall failure.
+Remember unlike other failures, early rejects are perfectly safe to retry. They cost very little since the request hasn't started. Clients are expected to respond by immediately retrying on another server after getting more up-to-date load balancing behaviour. They are not an overall failure. In this case client refers to whatever is directly calling the server, normally a load balancer or another server, not the user.
 
 The main limitation is that concurrency needs tuning and may change. An obvious case is to see what happens when the IO speed changes (think about an incident which slows down db response time).
 Neither reject nor queue is ideal. We don't want to reject when the server is about to become ready and we don't want to queue when it would be faster for another server to handle the request.
@@ -27,7 +31,7 @@ Neither reject nor queue is ideal. We don't want to reject when the server is ab
 
 The queue in taipei attempts to get the best of both worlds of reject and queue. The strategy is to queue for a fixed time and then reject, smoothing over small spikes, hopefully avoiding rejecting on a server which is about to become ready.
 
-Reject and retry takes a relatively long time. If both machines are geographically near each other they take 1ms-10ms to tell the client to retry. If the client is on a different continent it can take 50ms-200ms. We want to avoid retrying too early and instead wait if it's a temporary spike in traffic.
+Reject and retry takes a relatively long time. If both machines are geographically near each other they take 1ms-10ms to tell the client to retry. If the client is a server on a different continent it can take 50ms-200ms. We want to avoid retrying too early and instead wait if it's a temporary spike in traffic.
 
 The decision a request needs to make is whether it will complete faster waiting on this server or by going back to the client to retry. After all, there may be other servers free immediately. Since this duration needs to be checked by the server, it's easier if all requests carry the same queue timeout. If this request landed on this server then we'll assume routing was sensible, and this was the best option at the time. Routing state is global and necessarily always a bit stale. Therefore retrying too quickly will just end up putting the request on the same server. For taipei we default the queue timeout to 100ms and it's not recommended to change it. 
 

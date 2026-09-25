@@ -2,7 +2,9 @@
 title: What is taipei
 ---
 
-[Taipei](https://github.com/nhawkes/taipei) is a library that integrates with tower to enable writing servers that behave well under stress without tuning.
+[Taipei](https://github.com/nhawkes/taipei) is a library that integrates with [Tower](https://github.com/tower-rs/tower) to enable writing servers that behave well under stress without tuning.
+
+The examples here assume some familiarity with [Tokio](https://tokio.rs/) and [Tower](https://github.com/tower-rs/tower). Tokio is the most commonly used runtime for writing asynchronous Rust programs. It is often used in servers, allowing a single CPU thread to handle multiple requests and connections. Tower provides a `Service` trait that acts as an interface for composing reliability abstractions. For example, a Tower middleware layer might add retries. Taipei's functionality is implemented as Tower layers. That is, we take your service as a `my_service: impl Service` and wrap it with additional functionality to create `my_reliable_service: impl Service`. Whilst the examples use Tokio, they could be adapted to work with other runtimes, and the same principles can be applied in any language.
 
 Here is a full example of a reliable server:
 ```rust
