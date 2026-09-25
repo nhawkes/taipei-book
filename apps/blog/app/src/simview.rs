@@ -1173,6 +1173,12 @@ impl ViewState {
         }
     }
 
+    /// Whether any dot is still on the stage. Motion runs on the engine's clock, so a
+    /// sim that stops ticking while this is true freezes the dot where it stands.
+    pub fn airborne(&self) -> bool {
+        !self.dots.is_empty()
+    }
+
     /// Absorb one engine sub-tick's hops (called once per `tick`, like
     /// [`ViewState::depart`], so no transition is lost when several engine steps fit
     /// in one rendered frame).

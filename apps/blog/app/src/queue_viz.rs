@@ -771,7 +771,7 @@ pub(crate) async fn run(
                             ping_id = None;
                         }
                     }
-                    if manual && eng.obs().live.is_empty() {
+                    if manual && eng.obs().live.is_empty() && !vs.airborne() {
                         running.set(&turn, false);
                     }
                 }
