@@ -22,6 +22,7 @@ pub const BOOK: &[&str] = &[
     "load_balancing",
     "rate_limiting_and_auto_scaling",
     "other_workloads",
+    "closing_remarks",
 ];
 
 // ── Routes ──────────────────────────────────────────────────────────────────
