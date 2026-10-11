@@ -4,6 +4,7 @@
 //! own payload, and it is a **mount-time value**: transitions (and the dev content
 //! watcher's reload) re-mount the page, so nothing here tracks.
 
+use blog_core::{BlogRoute, StaticFile};
 use idyll::{view, Ctx, Never, Setup, View};
 use idyll_data::Store;
 use idyll_route::Route as _;
@@ -48,13 +49,13 @@ pub async fn head(ctx: Ctx<Setup, Never>, _seed: PageSeed) -> idyll::Result {
         meta name=("viewport") content=("width=device-width, initial-scale=1")
         meta name=("description") content=(description)
         meta property=("og:description") content=(description)
-        meta property=("og:image") content=("https://taipei-book.pages.dev/static/og.png")
+        meta property=("og:image") content=(format!("https://taipei-book.pages.dev{}", file_href(StaticFile::OgImage)))
         meta name=("twitter:card") content=("summary_large_image")
-        link rel=("icon") href=("/static/favicon.svg")
+        link rel=("icon") href=(file_href(StaticFile::Favicon))
         // The faces the styles name. Without these the whole type scale falls back and every
         // size, weight and measure chosen for them is applied to something else. Served locally
         // from `blog-fonts` (`display:swap` in each `@font-face`), not a font CDN.
-        link rel=("stylesheet") href=("/static/fonts.css")
+        link rel=("stylesheet") href=(file_href(StaticFile::Fonts))
     })
     .await
 }
@@ -133,7 +134,11 @@ fn chapter_link(chapter: ChapterFrag, toward: Toward) -> View {
 }
 
 fn chapter_href(chapter: &ChapterFrag) -> String {
-    blog_core::BlogRoute::doc(&chapter.slug).url().into_string()
+    BlogRoute::chapter(&chapter.slug).url().into_string()
+}
+
+fn file_href(file: StaticFile) -> String {
+    BlogRoute::Static { file }.url().into_string()
 }
 
 fn not_found() -> View {

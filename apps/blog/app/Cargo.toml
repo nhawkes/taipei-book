@@ -16,7 +16,7 @@ idyll = { version = "0.1" }
 idyll-data = { version = "0.1", default-features = false }
 idyll-styles = { version = "0.1" }
 blog-core = { path = "../../../crates/blog-core", default-features = false }
-idyll-route = { version = "0.1" }
+idyll-route = { version = "0.2" }
 serde = { workspace = true }
 
 # The queue visualiser runs the REAL taipei middleware inside the island: a tokio

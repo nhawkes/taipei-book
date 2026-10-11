@@ -11,9 +11,10 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use blog_core::{BlogRoute, Slug, StaticFile};
 use clap::Parser;
 use idyll_data::{node, root, value, AppRoot, Mutations, Queries, Request, Root, RootHandle};
-use idyll_serve::Server;
+use idyll_serve::{File, Server};
 
 #[derive(Parser)]
 struct Cli {
@@ -177,9 +178,9 @@ async fn route(db: &Db, request: Request) -> Result<Option<Page>, std::convert::
     let path = request.path.as_str();
 
     // The path is parsed to a typed `BlogRoute` (the derived inverse of `route.url()`), then
-    // resolved to its page. An unknown shape is `None` — the typed 404.
-    let resolved = match blog_core::BlogRoute::parse(path) {
-        Some(blog_core::BlogRoute::Index) => Some(Page {
+    // resolved to its page. An unknown shape, or a file's route, is `None` — the typed 404.
+    let resolved = match BlogRoute::parse(path) {
+        Some(BlogRoute::Index) => Some(Page {
             id: path.to_string(),
             title: "taipei".to_string(),
             route: Route::Index {
@@ -187,19 +188,76 @@ async fn route(db: &Db, request: Request) -> Result<Option<Page>, std::convert::
             },
             code_tabs: Vec::new(),
         }),
-        Some(blog_core::BlogRoute::Doc { slug }) => content.doc(&slug).map(|doc| {
+        Some(BlogRoute::Slug {
+            slug: Slug::Chapter(slug),
+        }) => content.doc(&slug).map(|doc| {
             let (previous, next) = neighbours(&contents(&content), &slug);
             article(path, &doc.title, &doc.markdown, previous, next)
         }),
-        Some(blog_core::BlogRoute::NotFound) => Some(Page {
+        Some(BlogRoute::Slug {
+            slug: Slug::NotFound,
+        }) => Some(Page {
             id: path.to_string(),
             title: "This page does not exist".to_string(),
             route: Route::NotFound,
             code_tabs: Vec::new(),
         }),
-        None => None,
+        Some(
+            BlogRoute::Slug {
+                slug: Slug::SearchConsole | Slug::Headers,
+            }
+            | BlogRoute::Static { .. }
+            | BlogRoute::Font { .. },
+        )
+        | None => None,
     };
     Ok(resolved)
+}
+
+// ── The site's files ─────────────────────────────────────────────────────────────────
+
+/// The paths that resolve to bytes: the files checked in beside this crate, and the type
+/// `blog-fonts` carries. The server asks here before the route query.
+impl idyll_serve::Files for Db {
+    async fn file(&self, request: &Request) -> Option<File> {
+        use idyll_route::Route as _;
+        match BlogRoute::parse(&request.path)? {
+            BlogRoute::Static { file } => Some(match file {
+                StaticFile::Favicon => {
+                    File::new("image/svg+xml", &include_bytes!("../files/favicon.svg")[..])
+                }
+                StaticFile::OgImage => {
+                    File::new("image/png", &include_bytes!("../files/og.png")[..])
+                }
+                StaticFile::Fonts => File::new(
+                    "text/css; charset=utf-8",
+                    blog_fonts::stylesheet(|file| {
+                        BlogRoute::Font { file: file.into() }.url().into_string()
+                    })
+                    .into_bytes(),
+                ),
+            }),
+            BlogRoute::Font { file } => {
+                blog_fonts::file(&file).map(|shipped| File::new(shipped.media_type, shipped.bytes))
+            }
+            BlogRoute::Slug {
+                slug: Slug::SearchConsole,
+            } => Some(File::new(
+                "text/html; charset=utf-8",
+                &include_bytes!("../files/google48d37259eca7f6fb.html")[..],
+            )),
+            BlogRoute::Slug {
+                slug: Slug::Headers,
+            } => Some(File::new(
+                "text/plain; charset=utf-8",
+                &include_bytes!("../files/_headers")[..],
+            )),
+            BlogRoute::Index
+            | BlogRoute::Slug {
+                slug: Slug::NotFound | Slug::Chapter(_),
+            } => None,
+        }
+    }
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────────────────────
@@ -288,14 +346,21 @@ fn check_book(content: &blog_core::Content) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// The blog's route set for prerendering — the index and every book chapter (from `BOOK`).
-/// Typed values; the prerenderer projects each to its URL with the same `#[route]` codec the
-/// resolver parses with.
+/// The blog's route set for prerendering — the index, every book chapter (from `BOOK`), and
+/// every file the site ships. Typed values; the prerenderer projects each to its URL with
+/// the same `#[route]` codec the resolvers parse with.
 impl idyll_serve::Sitemap for Db {
-    type Route = blog_core::BlogRoute;
-    async fn routes(&self) -> Vec<blog_core::BlogRoute> {
-        std::iter::once(blog_core::BlogRoute::Index)
-            .chain(blog_core::BlogRoute::chapters())
+    type Route = BlogRoute;
+    async fn routes(&self) -> Vec<BlogRoute> {
+        let files = [Slug::SearchConsole, Slug::Headers].map(|slug| BlogRoute::Slug { slug });
+        let statics = [StaticFile::Favicon, StaticFile::OgImage, StaticFile::Fonts]
+            .map(|file| BlogRoute::Static { file });
+        let fonts = blog_fonts::names().map(|file| BlogRoute::Font { file: file.into() });
+        std::iter::once(BlogRoute::Index)
+            .chain(BlogRoute::chapters())
+            .chain(files)
+            .chain(statics)
+            .chain(fonts)
             .collect()
     }
 }
@@ -317,10 +382,6 @@ async fn main() -> anyhow::Result<()> {
     let db = Db(Arc::new(std::sync::RwLock::new(content)));
     spawn_content_watcher(db.clone());
 
-    // Lay the bundled web faces down beside the other static assets, so `/static/fonts.css` and
-    // its woff2 serve locally — the type is in the binary, not fetched from a font CDN.
-    blog_fonts::install(&PathBuf::from("static"))?;
-
     // `prerender` runs the same SSR early, to a static `dist/` any host serves; otherwise
     // serve live. Prerendering builds the optimized bundle (as prod does).
     // `--standalone` inlines every asset into each page (data: URLs), so a page is a
@@ -339,8 +400,7 @@ async fn main() -> anyhow::Result<()> {
         .manifest_dir(env!("CARGO_MANIFEST_DIR"))
         .mode(mode)
         .port(port)
-        .assets("static") // favicon.svg and the sim bundles; the styles are typed
-        .not_found(blog_core::BlogRoute::NotFound)
+        .not_found(BlogRoute::NOT_FOUND)
         .build();
 
     match command {
@@ -384,5 +444,50 @@ mod tests {
             "```sim\n{\"sim\":\"queue-viz\",\"width\":960,\"height\":520,\"stage\":\"queue\"}\n```\n"
         )).unwrap();
         check_book(&load()).unwrap();
+    }
+
+    #[tokio::test]
+    async fn every_file_route_resolves_and_the_stylesheet_names_only_files_that_do() {
+        use idyll_route::Route as _;
+        use idyll_serve::{Files as _, Sitemap as _};
+
+        let db = Db(Arc::new(std::sync::RwLock::new(
+            blog_core::Content::load(tempfile::tempdir().unwrap().path()).unwrap(),
+        )));
+        let file = |path: String| {
+            let db = db.clone();
+            async move { db.file(&Request::new(path)).await }
+        };
+        for route in db.routes().await {
+            let page = matches!(
+                route,
+                BlogRoute::Index
+                    | BlogRoute::Slug {
+                        slug: Slug::Chapter(_)
+                    }
+            );
+            let url = route.url().into_string();
+            assert_eq!(file(url.clone()).await.is_none(), page, "{url}");
+        }
+
+        let css = file(
+            BlogRoute::Static {
+                file: StaticFile::Fonts,
+            }
+            .url()
+            .into_string(),
+        )
+        .await
+        .unwrap();
+        let css = String::from_utf8(css.bytes.into_owned()).unwrap();
+        let urls: Vec<&str> = css
+            .split("url('")
+            .skip(1)
+            .filter_map(|rest| rest.split('\'').next())
+            .collect();
+        assert_eq!(urls.len(), blog_fonts::FACES.len());
+        for url in urls {
+            assert!(file(url.to_owned()).await.is_some(), "{url}");
+        }
     }
 }

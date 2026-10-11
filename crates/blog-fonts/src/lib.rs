@@ -8,12 +8,10 @@
 //!
 //! The faces are the OFL-1.1 latin subsets from the `@fontsource` packages (see `fonts/OFL-*.txt`);
 //! only the weights the scale actually asks for are carried. [`FACES`] is the single source: the
-//! bytes it embeds and the `@font-face` rules [`install`] writes are generated from the same list,
+//! bytes it embeds and the `@font-face` rules [`stylesheet`] writes are generated from the same list,
 //! so a face is declared once.
 
 use std::fmt::Write as _;
-use std::io;
-use std::path::Path;
 
 /// One bundled face: the family it answers to, its weight, the basename it serves under, and the
 /// embedded woff2. `style` is always `normal` — the scale never asks for an italic face file
@@ -49,34 +47,64 @@ pub const FACES: &[Face] = &[
     face!("Newsreader", 500, "newsreader-500"),
 ];
 
-/// Materialise the bundled fonts into `static_dir`: each woff2 under `<static_dir>/fonts/`, and a
-/// `<static_dir>/fonts.css` of `@font-face` rules pointing at them under `/static/fonts/`. The
-/// server calls this at boot so its static handler serves the type from the binary's own bytes.
-/// Idempotent — a re-run rewrites the same files.
-pub fn install(static_dir: &Path) -> io::Result<()> {
-    let fonts = static_dir.join("fonts");
-    std::fs::create_dir_all(&fonts)?;
-    for (name, bytes) in [
-        (
-            "OFL-IBM-Plex.txt",
-            include_bytes!("../fonts/OFL-IBM-Plex.txt").as_slice(),
-        ),
-        (
-            "OFL-Newsreader.txt",
-            include_bytes!("../fonts/OFL-Newsreader.txt").as_slice(),
-        ),
-    ] {
-        std::fs::write(fonts.join(name), bytes)?;
-    }
+/// The licences the faces ship under, served beside them.
+pub const LICENCES: &[(&str, &[u8])] = &[
+    (
+        "OFL-IBM-Plex.txt",
+        include_bytes!("../fonts/OFL-IBM-Plex.txt"),
+    ),
+    (
+        "OFL-Newsreader.txt",
+        include_bytes!("../fonts/OFL-Newsreader.txt"),
+    ),
+];
+
+/// A file the type ships, found by the name it serves under.
+pub struct Shipped {
+    pub media_type: &'static str,
+    pub bytes: &'static [u8],
+}
+
+/// Every name [`file`] answers to: each face's woff2, then each licence.
+pub fn names() -> impl Iterator<Item = &'static str> {
+    FACES
+        .iter()
+        .map(|face| face.file)
+        .chain(LICENCES.iter().map(|(name, _)| *name))
+}
+
+/// The face or licence served under `name`.
+pub fn file(name: &str) -> Option<Shipped> {
+    let face = FACES
+        .iter()
+        .find(|face| face.file == name)
+        .map(|face| Shipped {
+            media_type: "font/woff2",
+            bytes: face.bytes,
+        });
+    face.or_else(|| {
+        LICENCES
+            .iter()
+            .find(|(licence, _)| *licence == name)
+            .map(|(_, bytes)| Shipped {
+                media_type: "text/plain; charset=utf-8",
+                bytes,
+            })
+    })
+}
+
+/// The `@font-face` rules for every face, each pointing at the URL `url` gives its file name.
+pub fn stylesheet(url: impl Fn(&str) -> String) -> String {
     let mut css = String::new();
     for face in FACES {
-        std::fs::write(fonts.join(face.file), face.bytes)?;
         let _ = writeln!(
             css,
             "@font-face{{font-family:'{}';font-style:normal;font-weight:{};\
-             font-display:swap;src:url('/static/fonts/{}') format('woff2')}}",
-            face.family, face.weight, face.file,
+             font-display:swap;src:url('{}') format('woff2')}}",
+            face.family,
+            face.weight,
+            url(face.file),
         );
     }
-    std::fs::write(static_dir.join("fonts.css"), css)
+    css
 }

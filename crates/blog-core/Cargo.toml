@@ -18,7 +18,7 @@ anyhow = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true, optional = true }
 strum = { version = "0.26", features = ["derive"] }
-idyll-route = { version = "0.1" }
+idyll-route = { version = "0.2" }
 idyll = { version = "0.1" }
 idyll-styles = { version = "0.1" }
 gray_matter = { version = "0.3.2", optional = true }

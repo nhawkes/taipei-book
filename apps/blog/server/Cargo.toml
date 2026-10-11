@@ -7,12 +7,12 @@ description = "The blog's server — a thin main over idyll-serve: data and infr
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-idyll-serve = { version = "0.1" }
+idyll-serve = { version = "0.2" }
 idyll-data = { version = "0.1", default-features = false }
 blog-app = { path = "../app" }
 blog-core = { path = "../../../crates/blog-core" }
 blog-fonts = { path = "../../../crates/blog-fonts" }
-idyll-route = { version = "0.1" }
+idyll-route = { version = "0.2" }
 anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

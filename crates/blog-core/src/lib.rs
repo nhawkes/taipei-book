@@ -26,35 +26,63 @@ pub const BOOK: &[&str] = &[
 ];
 
 // ── Routes ──────────────────────────────────────────────────────────────────
-// The blog's route identity, as a typed value. A `BlogRoute` you can hold is a page that
-// exists; its URL is a projection (`route.url()`), and `parse` recovers it from a request
-// path — both from the one `#[route]` spec, so links and parsing cannot drift. A chapter
-// is one segment, so the route space is exactly the flat set of files under `docs/` —
-// nothing nested is addressable.
+// The blog's route identity, as a typed value. A `BlogRoute` you can hold is a page or a
+// file that exists; its URL is a projection (`route.url()`), and `parse` recovers it from a
+// request path — both from the one `#[route]` spec, so links and parsing cannot drift. A
+// chapter is one segment, so the route space is exactly the flat set of files under
+// `docs/` — nothing nested is addressable.
 
 /// The blog's routes. Available everywhere (no content dependency) — the enumeration of
-/// *which* routes exist is [`BOOK`], in book order.
+/// *which* routes exist is [`BOOK`], in book order, beside the files the site ships.
 #[derive(idyll_route::Route, Debug, Clone, PartialEq, Eq)]
 pub enum BlogRoute {
     #[route("/")]
     Index,
-    #[route("/404")]
-    NotFound,
     #[route("/{slug}")]
-    Doc { slug: String },
+    Slug { slug: Slug },
+    #[route("/static/{file}")]
+    Static { file: StaticFile },
+    #[route("/static/fonts/{file}")]
+    Font { file: String },
+}
+
+/// What one segment at the root names: a fixed page or file, or else a chapter.
+#[derive(idyll_route::Segment, Debug, Clone, PartialEq, Eq)]
+pub enum Slug {
+    #[segment("404")]
+    NotFound,
+    #[segment("google48d37259eca7f6fb.html")]
+    SearchConsole,
+    #[segment("_headers")]
+    Headers,
+    Chapter(String),
+}
+
+#[derive(idyll_route::Segment, Debug, Clone, PartialEq, Eq)]
+pub enum StaticFile {
+    #[segment("favicon.svg")]
+    Favicon,
+    #[segment("og.png")]
+    OgImage,
+    #[segment("fonts.css")]
+    Fonts,
 }
 
 impl BlogRoute {
-    /// A doc route from a book path (`"modelling_a_server"`).
-    pub fn doc(path: &str) -> BlogRoute {
-        BlogRoute::Doc {
-            slug: path.to_owned(),
+    pub const NOT_FOUND: BlogRoute = BlogRoute::Slug {
+        slug: Slug::NotFound,
+    };
+
+    /// A chapter route from a book path (`"modelling_a_server"`).
+    pub fn chapter(path: &str) -> BlogRoute {
+        BlogRoute::Slug {
+            slug: Slug::Chapter(path.to_owned()),
         }
     }
 
-    /// Every book chapter as a `Doc` route, in book order.
+    /// Every book chapter as a route, in book order.
     pub fn chapters() -> impl Iterator<Item = BlogRoute> {
-        BOOK.iter().map(|path| BlogRoute::doc(path))
+        BOOK.iter().map(|path| BlogRoute::chapter(path))
     }
 }
 
